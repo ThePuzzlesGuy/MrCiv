@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Minecraft Faction Roster</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="site-header">
+    <h1>Faction Roster</h1>
+    <div class="actions">
+      <button id="exportBtn" class="btn">Export Assignments</button>
+      <label class="file-label btn">
+        Import Assignments
+        <input type="file" id="importFile" accept="application/json" hidden />
+      </label>
+    </div>
+  </header>
+
+  <main>
+    <div id="grid" class="grid" aria-live="polite"></div>
+  </main>
+
+  <template id="cardTemplate">
+    <div class="card" tabindex="0">
+      <div class="name" aria-label=""></div>
+      <div class="faction-tag" aria-hidden="true"></div>
+      <div class="editor">
+        <select class="select"></select>
+        <button class="save btn">Save</button>
+        <button class="cancel btn btn-ghost">Cancel</button>
+      </div>
+    </div>
+  </template>
+
+  <footer class="site-footer">
+    <p>Hover a name to see their faction. Click a name to change it. Changes save to your browser (no server).</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

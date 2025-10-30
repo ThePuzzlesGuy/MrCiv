@@ -1,0 +1,113 @@
+/* Minimal, clean, responsive grid */
+:root{
+  --bg:#0b0d12;
+  --card:#121722;
+  --ink:#e7ebf2;
+  --muted:#95a3b3;
+  --accent:#4ba3ff;
+  --ok:#3fd166;
+  --ring:rgba(75,163,255,.4);
+  --border:#1f2633;
+}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--ink);
+  font:16px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, Apple Color Emoji, Segoe UI Emoji;
+}
+
+.site-header, .site-footer{
+  max-width:1200px;
+  margin:0 auto;
+  padding:16px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+}
+.site-header h1{
+  margin:0;
+  font-size:clamp(20px, 3vw, 28px);
+  letter-spacing:.3px;
+}
+.actions{display:flex; gap:8px; flex-wrap:wrap}
+
+.btn{
+  background:var(--card);
+  color:var(--ink);
+  border:1px solid var(--border);
+  padding:8px 12px;
+  border-radius:12px;
+  cursor:pointer;
+}
+.btn:hover{border-color:var(--accent)}
+.btn-ghost{background:transparent}
+
+main{
+  max-width:1200px;
+  margin:0 auto;
+  padding:16px;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(180px, 1fr));
+  gap:12px;
+}
+
+.card{
+  position:relative;
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:14px;
+  min-height:72px;
+  outline:none;
+}
+.card:focus{box-shadow:0 0 0 4px var(--ring);}
+
+.name{
+  font-weight:600;
+  font-size:15px;
+  margin-bottom:6px;
+  text-wrap:balance;
+}
+
+.faction-tag{
+  font-size:12px;
+  color:var(--muted);
+}
+
+.card:hover .faction-tag::before{
+  content:"Faction: ";
+  color:var(--muted);
+}
+
+.editor{
+  position:absolute;
+  inset:auto 8px 8px 8px;
+  display:none;
+  background:rgba(10,14,20,.96);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:8px;
+  gap:8px;
+  align-items:center;
+}
+.card.editing .editor{display:flex}
+
+.select{
+  flex:1;
+  background:#0e1420;
+  color:var(--ink);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:8px;
+}
+
+.file-label{display:inline-flex; align-items:center; gap:8px;}
+
+.site-footer{opacity:.7; font-size:14px}
