@@ -1,8 +1,4 @@
-// Faction Roster — static, Netlify-ready
-// Anyone can click a name and change the faction; saved to localStorage on that browser.
-// On load we try to fetch assignments.json and merge it with your local edits.
-// To make global changes for everyone, export JSON and commit it as assignments.json in the repo.
-
+// Heads rendered via Minotar: https://minotar.net/helm/<username>/<size>.png
 const NAMES = [
   "1Dont3now_tv",
   "1ns0mn1a_bot",
@@ -1036,9 +1032,7 @@ function readLocal() {
   catch { return {}; }
 }
 
-function writeLocal(map) { 
-  localStorage.setItem(LS_KEY, JSON.stringify(map)); 
-}
+function writeLocal(map) { localStorage.setItem(LS_KEY, JSON.stringify(map)); }
 
 async function readAssignmentsJSON() { 
   try {
@@ -1048,10 +1042,16 @@ async function readAssignmentsJSON() {
   } catch { return {}; }
 }
 
+function headURL(name, size=100) {
+  const safe = encodeURIComponent(name);
+  return `https://minotar.net/helm/${safe}/${size}.png`;
+}
+
 function makeCard(name, assignedFaction, idx) { 
   const node = template.content.firstElementChild.cloneNode(true);
   const nameEl = node.querySelector(".name");
   const tagEl = node.querySelector(".faction-tag");
+  const img = node.querySelector(".head");
   const editor = node.querySelector(".editor");
   const select = node.querySelector(".select");
 
@@ -1059,6 +1059,9 @@ function makeCard(name, assignedFaction, idx) {
   nameEl.textContent = name;
   node.title = assignedFaction ? `Faction: ${assignedFaction}` : "Faction: None / Unassigned";
   tagEl.textContent = assignedFaction || "None / Unassigned";
+
+  img.src = headURL(name, 100);
+  img.alt = name + " head";
 
   // Populate select
   select.innerHTML = FACTIONS.map(f => `<option value="${f}">${f}</option>`).join("");
@@ -1120,7 +1123,6 @@ importFile.addEventListener("change", async (e) => {
     if (typeof map !== "object" || Array.isArray(map)) throw new Error("Invalid JSON shape");
     assignments = map;
     writeLocal(assignments);
-    // Re-render tags and titles only (keep DOM for speed)
     document.querySelectorAll(".card").forEach((card) => { 
       const name = card.querySelector(".name").textContent;
       const faction = assignments[name] || "None / Unassigned";

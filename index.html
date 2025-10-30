@@ -24,8 +24,13 @@
 
   <template id="cardTemplate">
     <div class="card" tabindex="0">
-      <div class="name" aria-label=""></div>
-      <div class="faction-tag" aria-hidden="true"></div>
+      <div class="row">
+        <img class="head" alt="" loading="lazy" />
+        <div class="meta">
+          <div class="name" aria-label=""></div>
+          <div class="faction-tag" aria-hidden="true"></div>
+        </div>
+      </div>
       <div class="editor">
         <select class="select"></select>
         <button class="save btn">Save</button>

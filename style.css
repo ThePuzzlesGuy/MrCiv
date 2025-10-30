@@ -54,7 +54,7 @@ main{
 
 .grid{
   display:grid;
-  grid-template-columns:repeat(auto-fill, minmax(180px, 1fr));
+  grid-template-columns:repeat(auto-fill, minmax(220px, 1fr));
   gap:12px;
 }
 
@@ -63,28 +63,35 @@ main{
   background:var(--card);
   border:1px solid var(--border);
   border-radius:16px;
-  padding:14px;
-  min-height:72px;
+  padding:12px;
+  min-height:80px;
   outline:none;
 }
 .card:focus{box-shadow:0 0 0 4px var(--ring);}
 
-.name{
-  font-weight:600;
-  font-size:15px;
-  margin-bottom:6px;
-  text-wrap:balance;
+.row{display:flex; align-items:center; gap:12px;}
+.head{
+  width:56px; height:56px;
+  image-rendering: pixelated;
+  border-radius:8px;
+  background:#0e1420;
+  border:1px solid var(--border);
+  flex:0 0 auto;
 }
-
+.meta{min-width:0}
+.name{
+  font-weight:700;
+  font-size:15px;
+  margin-bottom:4px;
+  text-wrap:balance;
+  word-break:break-word;
+}
 .faction-tag{
   font-size:12px;
   color:var(--muted);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
 }
-
-.card:hover .faction-tag::before{
-  content:"Faction: ";
-  color:var(--muted);
-}
+.card:hover .faction-tag::before{ content:"Faction: "; color:var(--muted); }
 
 .editor{
   position:absolute;
