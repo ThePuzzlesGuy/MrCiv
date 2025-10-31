@@ -33,6 +33,8 @@ export default async (req, context) => {
     const faction = (body?.faction ?? undefined);
     const gender  = (body?.gender  ?? undefined);
     const leader  = (typeof body?.leader === "boolean") ? !!body.leader : undefined;
+    const deputy  = (typeof body?.deputy === "boolean") ? !!body.deputy : undefined;
+    const status  = (body?.status === "dead" ? "dead" : (body?.status === "alive" ? "alive" : undefined));
     const allegiances = Array.isArray(body?.allegiances) ? body.allegiances.filter(x => typeof x === "string") : undefined;
     const blueOrder = (typeof body?.blueOrder === "boolean") ? !!body.blueOrder : undefined;
 
@@ -42,8 +44,8 @@ export default async (req, context) => {
 
     // Back-compat normalize
     const rec = typeof current[name] === "string"
-      ? { faction: current[name], gender: "", leader: false, allegiances: [], blueOrder: false }
-      : (current[name] || { faction: "", gender: "", leader: false, allegiances: [], blueOrder: false });
+      ? { faction: current[name], gender: "", leader: false, deputy: false, status: "alive", allegiances: [], blueOrder: false }
+      : (current[name] || { faction: "", gender: "", leader: false, deputy: false, status: "alive", allegiances: [], blueOrder: false });
 
     // Merge only provided fields to avoid overwriting unrelated info
     if (faction !== undefined) {
@@ -52,10 +54,12 @@ export default async (req, context) => {
     }
     if (gender !== undefined && (gender === "boy" || gender === "girl" || gender === "")) rec.gender = gender;
     if (leader !== undefined) rec.leader = !!leader;
+    if (deputy !== undefined) rec.deputy = !!deputy;
+    if (status !== undefined) rec.status = status;
     if (allegiances !== undefined) rec.allegiances = allegiances;
     if (blueOrder !== undefined) rec.blueOrder = !!blueOrder;
 
-    const empty = !(rec.faction) && !(rec.gender) && !rec.leader && (!rec.allegiances || rec.allegiances.length === 0) && !rec.blueOrder;
+    const empty = !(rec.faction) && !(rec.gender) && !rec.leader && !rec.deputy && (rec.status !== "dead") && (!rec.allegiances || rec.allegiances.length === 0) && !rec.blueOrder;
     if (empty) delete current[name];
     else current[name] = rec;
 

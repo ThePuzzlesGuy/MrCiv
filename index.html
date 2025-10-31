@@ -44,48 +44,76 @@
     </div>
   </template>
 
-  <!-- Modal -->
+  <!-- Modal (revamped layout) -->
   <dialog id="editorModal" class="modal">
     <form method="dialog" class="modal-card" id="modalForm">
       <h2 id="modalTitle">Edit</h2>
-      <div class="field">
-        <label>Gender</label>
-        <div class="segmented">
-          <input type="radio" name="gender" id="g-boy" value="boy">
-          <label for="g-boy">Boy</label>
-          <input type="radio" name="gender" id="g-girl" value="girl">
-          <label for="g-girl">Girl</label>
-          <input type="radio" name="gender" id="g-none" value="">
-          <label for="g-none">Unspecified</label>
+
+      <div class="form-grid">
+        <div class="field">
+          <label>Team</label>
+          <div class="segmented">
+            <input type="radio" name="gender" id="g-boy" value="boy">
+            <label for="g-boy">Boy</label>
+            <input type="radio" name="gender" id="g-girl" value="girl">
+            <label for="g-girl">Girl</label>
+            <input type="radio" name="gender" id="g-none" value="">
+            <label for="g-none">Unknown</label>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Status</label>
+          <div class="segmented">
+            <input type="radio" name="status" id="s-alive" value="alive">
+            <label for="s-alive">Alive</label>
+            <input type="radio" name="status" id="s-dead" value="dead">
+            <label for="s-dead">Dead</label>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="modalFaction">Faction</label>
+          <select id="modalFaction" class="select"></select>
+        </div>
+
+        <div class="field">
+          <label>Leader?</label>
+          <div class="segmented">
+            <input type="radio" name="leader" id="leader-yes" value="true">
+            <label for="leader-yes">Yes</label>
+            <input type="radio" name="leader" id="leader-no" value="false">
+            <label for="leader-no">No</label>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>2nd in Command?</label>
+          <div class="segmented">
+            <input type="radio" name="deputy" id="deputy-yes" value="true">
+            <label for="deputy-yes">Yes</label>
+            <input type="radio" name="deputy" id="deputy-no" value="false">
+            <label for="deputy-no">No</label>
+          </div>
+        </div>
+
+        <div class="field field-span">
+          <label for="modalAllegiances">Allegiances (select one or more)</label>
+          <select id="modalAllegiances" class="select" multiple size="7" aria-label="Allegiances"></select>
+          <small class="muted">Hold Ctrl/Cmd (or tap) to select multiple.</small>
+        </div>
+
+        <div class="field">
+          <label>Wear the Blue Order badge?</label>
+          <div class="segmented">
+            <input type="radio" name="blueOrder" id="blueorder-yes" value="true">
+            <label for="blueorder-yes">Yes</label>
+            <input type="radio" name="blueOrder" id="blueorder-no" value="false">
+            <label for="blueorder-no">No</label>
+          </div>
         </div>
       </div>
-      <div class="field">
-        <label for="modalFaction">Faction</label>
-        <select id="modalFaction" class="select"></select>
-      </div>
-      <div class="field">
-        <label>Leader</label>
-        <div class="segmented">
-          <input type="radio" name="leader" id="leader-yes" value="true">
-          <label for="leader-yes">Yes</label>
-          <input type="radio" name="leader" id="leader-no" value="false">
-          <label for="leader-no">No</label>
-        </div>
-      </div>
-      <div class="field">
-        <label for="modalAllegiances">Allegiances (select one or more)</label>
-        <select id="modalAllegiances" class="select" multiple size="7" aria-label="Allegiances"></select>
-        <small class="muted">Hold Ctrl/Cmd (or tap) to select multiple.</small>
-      </div>
-      <div class="field">
-        <label>Wear the Blue Order badge?</label>
-        <div class="segmented">
-          <input type="radio" name="blueOrder" id="blueorder-yes" value="true">
-          <label for="blueorder-yes">Yes</label>
-          <input type="radio" name="blueOrder" id="blueorder-no" value="false">
-          <label for="blueorder-no">No</label>
-        </div>
-      </div>
+
       <div class="actions">
         <button value="cancel" class="btn btn-ghost">Cancel</button>
         <button id="saveBtn" value="confirm" class="btn">Save</button>

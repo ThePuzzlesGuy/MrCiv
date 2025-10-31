@@ -1,4 +1,4 @@
-/* === COMPLETE STYLE.CSS === */
+/* === COMPLETE STYLE.CSS (v6) === */
 :root{
   --bg:#0b0d12;
   --card:#121722;
@@ -10,6 +10,7 @@
   --border:#1f2633;
   --boy:#3da4ff;
   --girl:#ff6fb1;
+  --danger:#ff4b4b;
 }
 
 *{box-sizing:border-box}
@@ -65,11 +66,12 @@ main{max-width:1200px;margin:0 auto;padding:16px;}
   padding:10px;
   min-height:84px;
   outline:none;
-  transition:border-color .2s,box-shadow .2s;
+  transition:border-color .2s,box-shadow .2s,opacity .2s;
 }
 .card:focus{box-shadow:0 0 0 4px var(--ring);}
 .card.boy{border-color:var(--boy);}
 .card.girl{border-color:var(--girl);}
+.card.dead{opacity:.75;}
 
 /* Blue Order badge */
 .badge-blueorder{
@@ -86,8 +88,9 @@ main{max-width:1200px;margin:0 auto;padding:16px;}
 }
 .card.has-blueorder .badge-blueorder{display:block;}
 
-/* Leader crown */
-.card.leader .head-btn::after{
+/* Leader (and Deputy) crown */
+.card.leader .head-btn::after,
+.card.deputy .head-btn::after{
   content:"👑";
   position:absolute;
   top:-8px;
@@ -96,7 +99,26 @@ main{max-width:1200px;margin:0 auto;padding:16px;}
   filter:drop-shadow(0 1px 1px rgba(0,0,0,.6));
 }
 
-/* PLAYER INFO */
+/* Dead X overlay */
+.card.dead .head-btn::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+}
+.card.dead .head-btn::after{
+  /* keep crown AND add X via pseudo-element on the head image itself */
+}
+.card.dead .head::after{
+  content:"";
+  position:absolute;
+  inset:0;
+}
+
+/* We use an extra wrapper effect directly on the head image using a background cross via outline trick */
+.head-wrap{position:relative}
+
+/* Head + meta */
 .row{display:flex;align-items:center;gap:12px;}
 .head-btn{
   padding:0;
@@ -114,7 +136,20 @@ main{max-width:1200px;margin:0 auto;padding:16px;}
   background:#0e1420;
   border:1px solid var(--border);
   display:block;
+  position:relative;
 }
+/* draw red X using two rotated pseudo elements */
+.card.dead .head::before,
+.card.dead .head::after{
+  content:"";
+  position:absolute;
+  left:6px; right:6px; top:28px; height:4px;
+  background:var(--danger);
+  border-radius:2px;
+}
+.card.dead .head::before{ transform:rotate(45deg); }
+.card.dead .head::after{ transform:rotate(-45deg); }
+
 .meta{min-width:0}
 .name{
   font-weight:700;
@@ -142,11 +177,12 @@ main{max-width:1200px;margin:0 auto;padding:16px;}
   border:1px solid var(--border);
   border-radius:16px;
   padding:16px;
-  width:min(520px,92vw);
+  width:min(560px,92vw);
   color:var(--ink);
 }
 .modal-card h2{margin:0 0 12px 0;font-size:18px;}
 .field{margin:12px 0;display:flex;flex-direction:column;gap:6px;}
+.field-span{grid-column:1/-1;}
 .select{
   background:#0e1420;
   color:var(--ink);
@@ -154,6 +190,13 @@ main{max-width:1200px;margin:0 auto;padding:16px;}
   border-radius:10px;
   padding:8px;
   width:100%;
+}
+
+/* Form grid for new layout */
+.form-grid{
+  display:grid;
+  grid-template-columns:repeat(2, minmax(0,1fr));
+  gap:12px 16px;
 }
 
 /* SEGMENTED BUTTONS */
@@ -178,22 +221,24 @@ main{max-width:1200px;margin:0 auto;padding:16px;}
 }
 
 /* Gender highlights */
-.segmented input#g-boy:checked + label[for="g-boy"]{
-  outline:3px solid var(--boy);
-}
-.segmented input#g-girl:checked + label[for="g-girl"]{
-  outline:3px solid var(--girl);
-}
+.segmented input#g-boy:checked + label[for="g-boy"]{ outline:3px solid var(--boy); }
+.segmented input#g-girl:checked + label[for="g-girl"]{ outline:3px solid var(--girl); }
 
-/* Leader + Blue Order highlights */
-.segmented input#leader-yes:checked + label[for="leader-yes"],
-.segmented input#leader-no:checked + label[for="leader-no"],
+/* Status highlights */
+.segmented input#s-alive:checked + label[for="s-alive"]{ outline:3px solid var(--ok); }
+.segmented input#s-dead:checked  + label[for="s-dead"]{ outline:3px solid var(--danger); }
+
+/* Leader, Deputy, Blue Order highlights */
+.segmented input#leader-yes:checked    + label[for="leader-yes"],
+.segmented input#leader-no:checked     + label[for="leader-no"],
+.segmented input#deputy-yes:checked    + label[for="deputy-yes"],
+.segmented input#deputy-no:checked     + label[for="deputy-no"],
 .segmented input#blueorder-yes:checked + label[for="blueorder-yes"],
-.segmented input#blueorder-no:checked + label[for="blueorder-no"]{
+.segmented input#blueorder-no:checked  + label[for="blueorder-no"]{
   outline:3px solid var(--accent);
 }
 
-/* BUTTONS + MISC */
+/* BUTTONS */
 .actions{display:flex;gap:8px;justify-content:flex-end;margin-top:8px;}
 .btn{
   background:var(--card);
@@ -205,7 +250,6 @@ main{max-width:1200px;margin:0 auto;padding:16px;}
 }
 .btn:hover{border-color:var(--accent);}
 .btn-ghost{background:transparent;}
-.muted{color:var(--muted);font-size:12px;}
 
 /* LEADERS TOGGLE */
 .leaders-toggle{
