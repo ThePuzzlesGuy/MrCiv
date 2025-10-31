@@ -1,4 +1,3 @@
-// Heads rendered via Minotar: https://minotar.net/helm/<username>/<size>.png
 const NAMES = [
   "1Dont3now_tv",
   "1ns0mn1a_bot",
@@ -1019,51 +1018,30 @@ const FACTIONS = [
   "The Egalitarian Order",
   "None / Unassigned"
 ];
+const API = "/.netlify/functions/assignments";
 
-const LS_KEY = "faction_roster_assignments_v1";
+function headURL(name, size=100) {
+  return `https://minotar.net/helm/${encodeURIComponent(name)}/${size}.png`;
+}
 
 const grid = document.getElementById("grid");
 const template = document.getElementById("cardTemplate");
 const exportBtn = document.getElementById("exportBtn");
 const importFile = document.getElementById("importFile");
 
-function readLocal() { 
-  try { return JSON.parse(localStorage.getItem(LS_KEY) || "{}"); } 
-  catch { return {}; }
-}
-
-function writeLocal(map) { localStorage.setItem(LS_KEY, JSON.stringify(map)); }
-
-async function readAssignmentsJSON() { 
-  try {
-    const res = await fetch("assignments.json", { cache: "no-store" });
-    if (!res.ok) return {};
-    return await res.json();
-  } catch { return {}; }
-}
-
-function headURL(name, size=100) {
-  const safe = encodeURIComponent(name);
-  return `https://minotar.net/helm/${safe}/${size}.png`;
-}
-
-function makeCard(name, assignedFaction, idx) { 
+function makeCard(name, assignedFaction, idx) {
   const node = template.content.firstElementChild.cloneNode(true);
   const nameEl = node.querySelector(".name");
   const tagEl = node.querySelector(".faction-tag");
   const img = node.querySelector(".head");
-  const editor = node.querySelector(".editor");
   const select = node.querySelector(".select");
 
-  node.dataset.index = idx;
   nameEl.textContent = name;
-  node.title = assignedFaction ? `Faction: ${assignedFaction}` : "Faction: None / Unassigned";
   tagEl.textContent = assignedFaction || "None / Unassigned";
-
+  node.title = assignedFaction ? `Faction: ${assignedFaction}` : "Faction: None / Unassigned";
   img.src = headURL(name, 100);
   img.alt = name + " head";
 
-  // Populate select
   select.innerHTML = FACTIONS.map(f => `<option value="${f}">${f}</option>`).join("");
   select.value = assignedFaction || "None / Unassigned";
 
@@ -1073,39 +1051,48 @@ function makeCard(name, assignedFaction, idx) {
   nameEl.addEventListener("click", openEditor);
   node.addEventListener("keydown", (e) => { if (e.key === "Enter") openEditor(); });
 
-  node.querySelector(".save").addEventListener("click", () => { 
-    const chosen = select.value;
-    assignments[name] = chosen === "None / Unassigned" ? "" : chosen;
-    writeLocal(assignments);
-    tagEl.textContent = assignments[name] || "None / Unassigned";
-    node.title = assignments[name] ? `Faction: ${assignments[name]}` : "Faction: None / Unassigned";
+  node.querySelector(".save").addEventListener("click", async () => {
+    const chosen = select.value === "None / Unassigned" ? "" : select.value;
+    // optimistic UI
+    tagEl.textContent = chosen || "None / Unassigned";
+    node.title = chosen ? `Faction: ${chosen}` : "Faction: None / Unassigned";
     closeEditor();
+    try {
+      const res = await fetch(API, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, faction: chosen })
+      });
+      if (!res.ok) throw new Error(await res.text());
+    } catch (e) {
+      alert("Save failed. Reloading…");
+      location.reload();
+    }
   });
 
   node.querySelector(".cancel").addEventListener("click", closeEditor);
-
   return node;
 }
 
-let assignments = {};
+async function loadAll() {
+  const res = await fetch(API, { cache: "no-store" });
+  if (!res.ok) throw new Error("Failed to load assignments");
+  return res.json();
+}
 
-async function init() { 
-  const serverDefaults = await readAssignmentsJSON();
-  const local = readLocal();
-  // Local overrides default file
-  assignments = Object.assign({}, serverDefaults, local);
-
-  // Render
+async function init() {
+  const assignments = await loadAll();
   const frag = document.createDocumentFragment();
-  NAMES.forEach((name, i) => { 
+  NAMES.forEach((name, i) => {
     const card = makeCard(name, assignments[name] || "", i);
     frag.appendChild(card);
   });
   grid.appendChild(frag);
 }
 
-exportBtn.addEventListener("click", () => { 
-  const blob = new Blob([JSON.stringify(assignments, null, 2)], { type:"application/json" });
+exportBtn.addEventListener("click", async () => {
+  const map = await loadAll();
+  const blob = new Blob([JSON.stringify(map, null, 2)], { type:"application/json" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
@@ -1114,24 +1101,20 @@ exportBtn.addEventListener("click", () => {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 });
 
-importFile.addEventListener("change", async (e) => { 
+importFile.addEventListener("change", async (e) => {
   const file = e.target.files?.[0];
   if (!file) return;
   try {
     const text = await file.text();
     const map = JSON.parse(text);
-    if (typeof map !== "object" || Array.isArray(map)) throw new Error("Invalid JSON shape");
-    assignments = map;
-    writeLocal(assignments);
-    document.querySelectorAll(".card").forEach((card) => { 
-      const name = card.querySelector(".name").textContent;
-      const faction = assignments[name] || "None / Unassigned";
-      card.querySelector(".faction-tag").textContent = faction;
-      card.title = `Faction: ${faction}`;
-      card.classList.remove("editing");
+    const res = await fetch(API, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ bulk: map })
     });
-    alert("Assignments imported and saved to your browser.");
-  } catch (err) { 
+    if (!res.ok) throw new Error(await res.text());
+    location.reload();
+  } catch (err) {
     alert("Import failed: " + err.message);
   } finally { e.target.value = ""; }
 });
