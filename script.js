@@ -1005,7 +1005,7 @@ const FACTIONS = [
   "HD Clan",
   "Greeko Boys",
   "Men in Suits",
-  "Civ Event Veterans",
+  "The Veterans",
   "Goober Bay",
   "The Pharaonate",
   "Ironcrest Clan",
