@@ -30,8 +30,8 @@ export default async (req, context) => {
     }
 
     const name    = body?.name;
-    const faction = (body?.faction ?? "").toString();
-    const gender  = (body?.gender  ?? "").toString();           // "", "boy", "girl"
+    const faction = (body?.faction ?? undefined);
+    const gender  = (body?.gender  ?? undefined);
     const leader  = (typeof body?.leader === "boolean") ? !!body.leader : undefined;
     const allegiances = Array.isArray(body?.allegiances) ? body.allegiances.filter(x => typeof x === "string") : undefined;
 
@@ -44,11 +44,12 @@ export default async (req, context) => {
       ? { faction: current[name], gender: "", leader: false, allegiances: [] }
       : (current[name] || { faction: "", gender: "", leader: false, allegiances: [] });
 
-    // Merge only provided fields (to avoid overwriting unrelated info)
+    // Merge only provided fields to avoid overwriting unrelated info
     if (faction !== undefined) {
-      rec.faction = (faction && faction !== "None / Unassigned") ? faction : (faction === "" ? "" : (rec.faction || ""));
+      const f = (faction ?? "").toString();
+      rec.faction = (f && f !== "None / Unassigned") ? f : (f === "" ? "" : (rec.faction || ""));
     }
-    if (gender === "boy" || gender === "girl" || gender === "") rec.gender = gender;
+    if (gender !== undefined && (gender === "boy" || gender === "girl" || gender === "")) rec.gender = gender;
     if (leader !== undefined) rec.leader = !!leader;
     if (allegiances !== undefined) rec.allegiances = allegiances;
 
