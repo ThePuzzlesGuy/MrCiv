@@ -1,4 +1,4 @@
-/* === COMPLETE STYLE.CSS (v6) === */
+/* === COMPLETE STYLE.CSS (v6 FIXED) === */
 :root{
   --bg:#0b0d12;
   --card:#121722;
@@ -99,24 +99,30 @@ main{max-width:1200px;margin:0 auto;padding:16px;}
   filter:drop-shadow(0 1px 1px rgba(0,0,0,.6));
 }
 
-/* Dead X overlay */
+/* Dead X overlay — draw on the button wrapper (not the <img>) */
+.card.dead .head-btn{
+  position:relative; /* ensure overlay positions correctly */
+}
 .card.dead .head-btn::before{
   content:"";
   position:absolute;
-  inset:0;
+  inset:0;                 /* cover the head area */
+  border-radius:10px;      /* match .head border radius */
   pointer-events:none;
+  /* two centered 4px lines crossing to make an X */
+  background:
+    linear-gradient(45deg,
+      transparent calc(50% - 2px),
+      var(--danger) calc(50% - 2px) calc(50% + 2px),
+      transparent calc(50% + 2px)
+    ),
+    linear-gradient(-45deg,
+      transparent calc(50% - 2px),
+      var(--danger) calc(50% - 2px) calc(50% + 2px),
+      transparent calc(50% + 2px)
+    );
+  opacity:.95;
 }
-.card.dead .head-btn::after{
-  /* keep crown AND add X via pseudo-element on the head image itself */
-}
-.card.dead .head::after{
-  content:"";
-  position:absolute;
-  inset:0;
-}
-
-/* We use an extra wrapper effect directly on the head image using a background cross via outline trick */
-.head-wrap{position:relative}
 
 /* Head + meta */
 .row{display:flex;align-items:center;gap:12px;}
@@ -138,18 +144,6 @@ main{max-width:1200px;margin:0 auto;padding:16px;}
   display:block;
   position:relative;
 }
-/* draw red X using two rotated pseudo elements */
-.card.dead .head::before,
-.card.dead .head::after{
-  content:"";
-  position:absolute;
-  left:6px; right:6px; top:28px; height:4px;
-  background:var(--danger);
-  border-radius:2px;
-}
-.card.dead .head::before{ transform:rotate(45deg); }
-.card.dead .head::after{ transform:rotate(-45deg); }
-
 .meta{min-width:0}
 .name{
   font-weight:700;
