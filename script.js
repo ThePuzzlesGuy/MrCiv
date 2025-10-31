@@ -1016,6 +1016,7 @@ const FACTIONS = [
   "Domnul University",
   "DUDE CITY",
   "The Egalitarian Order",
+  "Brociples",
   "None / Unassigned"
 ];
 
