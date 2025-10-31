@@ -34,6 +34,7 @@ export default async (req, context) => {
     const gender  = (body?.gender  ?? undefined);
     const leader  = (typeof body?.leader === "boolean") ? !!body.leader : undefined;
     const allegiances = Array.isArray(body?.allegiances) ? body.allegiances.filter(x => typeof x === "string") : undefined;
+    const blueOrder = (typeof body?.blueOrder === "boolean") ? !!body.blueOrder : undefined;
 
     if (!name || typeof name !== "string") {
       return respond({ error: "Missing 'name' string" }, 400);
@@ -41,8 +42,8 @@ export default async (req, context) => {
 
     // Back-compat normalize
     const rec = typeof current[name] === "string"
-      ? { faction: current[name], gender: "", leader: false, allegiances: [] }
-      : (current[name] || { faction: "", gender: "", leader: false, allegiances: [] });
+      ? { faction: current[name], gender: "", leader: false, allegiances: [], blueOrder: false }
+      : (current[name] || { faction: "", gender: "", leader: false, allegiances: [], blueOrder: false });
 
     // Merge only provided fields to avoid overwriting unrelated info
     if (faction !== undefined) {
@@ -52,8 +53,9 @@ export default async (req, context) => {
     if (gender !== undefined && (gender === "boy" || gender === "girl" || gender === "")) rec.gender = gender;
     if (leader !== undefined) rec.leader = !!leader;
     if (allegiances !== undefined) rec.allegiances = allegiances;
+    if (blueOrder !== undefined) rec.blueOrder = !!blueOrder;
 
-    const empty = !(rec.faction) && !(rec.gender) && !rec.leader && (!rec.allegiances || rec.allegiances.length === 0);
+    const empty = !(rec.faction) && !(rec.gender) && !rec.leader && (!rec.allegiances || rec.allegiances.length === 0) && !rec.blueOrder;
     if (empty) delete current[name];
     else current[name] = rec;
 

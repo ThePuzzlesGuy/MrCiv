@@ -1,6 +1,5 @@
-// Full client with NAMES list, FACTIONS as provided, Allegiances, Leaders, Gender, Search & Filters.
-// Data schema: map[name] = { faction: string, gender: "boy"|"girl"|"" , leader: boolean, allegiances: string[] }
-// Backward compatible: string value -> faction only.
+// Full client with Blue Order badge support.
+// Schema: map[name] = { faction: string, gender: "boy"|"girl"|"" , leader: boolean, allegiances: string[], blueOrder: boolean }
 
 const NAMES = [
   "1Dont3now_tv",
@@ -1021,7 +1020,6 @@ const FACTIONS = [
   "DUDE CITY",
   "The Egalitarian Order",
   "Brociples",
-  "The Bard's Hall",
   "None / Unassigned"
 ];
 const API = "/.netlify/functions/assignments";
@@ -1052,6 +1050,7 @@ function factionOf(n) { const r = state.assignments[n]; return !r ? "" : (typeof
 function genderOf(n)  { const r = state.assignments[n]; return (!r || typeof r === "string") ? "" : (r.gender || ""); }
 function leaderOf(n)  { const r = state.assignments[n]; return (!r || typeof r === "string") ? false : !!r.leader; }
 function allegsOf(n)  { const r = state.assignments[n]; return (!r || typeof r === "string") ? [] : (Array.isArray(r.allegiances) ? r.allegiances : []); }
+function blueOrderOf(n) { const r = state.assignments[n]; return (!r || typeof r === "string") ? false : !!r.blueOrder; }
 
 function setCardGenderClass(card, gender){ card.classList.remove("boy","girl"); if(gender==="boy")card.classList.add("boy"); if(gender==="girl")card.classList.add("girl"); }
 function setCardLeaderClass(card, isLeader){ card.classList.toggle("leader", !!isLeader); }
@@ -1069,10 +1068,12 @@ function makeCard(name) {
   const tagEl = node.querySelector(".faction-tag");
   const img = node.querySelector(".head");
   const btn = node.querySelector(".head-btn");
+  const badge = node.querySelector(".badge-blueorder");
 
   nameEl.textContent = name;
   img.src = headURL(name, 100);
   img.alt = name + " head";
+  badge.src = "assets/blueorder.png";
 
   const faction = factionOf(name) || "None / Unassigned";
   tagEl.textContent = faction + (allegsOf(name).length ? "  🤝" : "");
@@ -1080,6 +1081,7 @@ function makeCard(name) {
 
   setCardGenderClass(node, genderOf(name));
   setCardLeaderClass(node, leaderOf(name));
+  node.classList.toggle("has-blueorder", blueOrderOf(name));
 
   btn.addEventListener("click", () => openModal(name));
 
@@ -1108,6 +1110,7 @@ function renderAll() {
     updateTitleTooltip(card, name);
     setCardGenderClass(card, genderOf(name));
     setCardLeaderClass(card, isLeader);
+    card.classList.toggle("has-blueorder", blueOrderOf(name));
     frag.appendChild(card);
   });
 
@@ -1132,6 +1135,11 @@ function openModal(name) {
   const allegs = new Set(allegsOf(name));
   ;[...modalAllegiances.options].forEach(opt => opt.selected = allegs.has(opt.value));
 
+  // Blue Order badge
+  const bo = blueOrderOf(name);
+  modalForm.querySelector('#blueorder-yes').checked = !!bo;
+  modalForm.querySelector('#blueorder-no').checked  = !bo;
+
   modal.showModal();
 }
 
@@ -1143,14 +1151,16 @@ async function saveModal() {
   const faction = (modalFaction.value === "None / Unassigned") ? "" : modalFaction.value;
   const leader = modalForm.querySelector('#leader-yes')?.checked === true;
   const allegiances = selectedAllegiances().filter(a => a && a !== "None / Unassigned");
+  const blueOrder = modalForm.querySelector('#blueorder-yes')?.checked === true;
 
-  // optimistic merge (preserves existing, doesn't blank unrelated fields)
+  // optimistic merge (preserve other fields)
   const prev = state.assignments[name] || {};
   state.assignments[name] = {
     faction: (faction ?? prev.faction ?? ""),
     gender:  (gender  ?? prev.gender  ?? ""),
     leader:  (typeof leader === "boolean" ? leader : !!prev.leader),
     allegiances: Array.isArray(allegiances) ? allegiances : (prev.allegiances || []),
+    blueOrder: (typeof blueOrder === "boolean" ? blueOrder : !!prev.blueOrder),
   };
   renderAll();
 
@@ -1158,7 +1168,7 @@ async function saveModal() {
     const res = await fetch(API, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, faction, gender, leader, allegiances })
+      body: JSON.stringify({ name, faction, gender, leader, allegiances, blueOrder })
     });
     if (!res.ok) throw new Error(await res.text());
   } catch (e) {
@@ -1182,12 +1192,13 @@ async function loadAll() {
   for (const name of NAMES) {
     const v = map[name];
     if (!v) continue;
-    if (typeof v === "string") normalized[name] = { faction: v, gender: "", leader: false, allegiances: [] };
+    if (typeof v === "string") normalized[name] = { faction: v, gender: "", leader: false, allegiances: [], blueOrder: false };
     else normalized[name] = {
       faction: v.faction || "",
       gender:  v.gender  || "",
       leader:  !!v.leader,
-      allegiances: Array.isArray(v.allegiances) ? v.allegiances : []
+      allegiances: Array.isArray(v.allegiances) ? v.allegiances : [],
+      blueOrder: !!v.blueOrder
     };
   }
   return normalized;

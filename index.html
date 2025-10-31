@@ -31,6 +31,7 @@
   <!-- Card template -->
   <template id="cardTemplate">
     <div class="card" tabindex="0">
+      <img class="badge-blueorder" alt="Blue Order badge" aria-hidden="true" />
       <div class="row">
         <button class="head-btn" aria-label="Edit player">
           <img class="head" alt="" loading="lazy" />
@@ -75,6 +76,15 @@
         <label for="modalAllegiances">Allegiances (select one or more)</label>
         <select id="modalAllegiances" class="select" multiple size="7" aria-label="Allegiances"></select>
         <small class="muted">Hold Ctrl/Cmd (or tap) to select multiple.</small>
+      </div>
+      <div class="field">
+        <label>Wear the Blue Order badge?</label>
+        <div class="segmented">
+          <input type="radio" name="blueOrder" id="blueorder-yes" value="true">
+          <label for="blueorder-yes">Yes</label>
+          <input type="radio" name="blueOrder" id="blueorder-no" value="false">
+          <label for="blueorder-no">No</label>
+        </div>
       </div>
       <div class="actions">
         <button value="cancel" class="btn btn-ghost">Cancel</button>
