@@ -1,4 +1,4 @@
-/* === COMPLETE STYLE.CSS (v6 FIXED) === */
+/* === COMPLETE STYLE.CSS (v8 Team Filter) === */
 :root{
   --bg:#0b0d12;
   --card:#121722;
@@ -38,7 +38,7 @@ body{
   font-size:clamp(18px,2.6vw,28px);
   letter-spacing:.3px;
 }
-.toolbar{display:flex;gap:8px;flex-wrap:wrap}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .search,.filter{
   background:var(--card);
   color:var(--ink);
@@ -49,6 +49,13 @@ body{
 }
 .filter{min-width:180px}
 
+/* counters */
+.title-and-counters{display:flex;flex-direction:column;gap:6px;flex:1 1 auto;min-width:260px}
+.counters{display:flex;gap:16px;flex-wrap:wrap}
+.counter{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:8px 12px;min-width:160px}
+.counter-line{display:flex;justify-content:space-between;gap:8px;font-weight:700}
+.counter-sub{color:var(--muted);font-size:12px;display:flex;justify-content:space-between}
+
 /* GRID */
 main{max-width:1200px;margin:0 auto;padding:16px;}
 .grid{
@@ -56,13 +63,6 @@ main{max-width:1200px;margin:0 auto;padding:16px;}
   grid-template-columns:repeat(auto-fill,minmax(230px,1fr));
   gap:12px;
 }
-
-/* counters */
-.title-and-counters{display:flex;flex-direction:column;gap:6px;flex:1 1 auto;min-width:260px}
-.counters{display:flex;gap:16px;flex-wrap:wrap}
-.counter{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:8px 12px;min-width:160px}
-.counter-line{display:flex;justify-content:space-between;gap:8px;font-weight:700}
-.counter-sub{color:var(--muted);font-size:12px;display:flex;justify-content:space-between}
 
 /* PLAYER CARD */
 .card{
@@ -107,16 +107,13 @@ main{max-width:1200px;margin:0 auto;padding:16px;}
 }
 
 /* Dead X overlay — draw on the button wrapper (not the <img>) */
-.card.dead .head-btn{
-  position:relative; /* ensure overlay positions correctly */
-}
+.card.dead .head-btn{ position:relative; }
 .card.dead .head-btn::before{
   content:"";
   position:absolute;
-  inset:0;                 /* cover the head area */
-  border-radius:10px;      /* match .head border radius */
+  inset:0;
+  border-radius:10px;
   pointer-events:none;
-  /* two centered 4px lines crossing to make an X */
   background:
     linear-gradient(45deg,
       transparent calc(50% - 2px),
@@ -193,7 +190,7 @@ main{max-width:1200px;margin:0 auto;padding:16px;}
   width:100%;
 }
 
-/* Form grid for new layout */
+/* Form grid for layout */
 .form-grid{
   display:grid;
   grid-template-columns:repeat(2, minmax(0,1fr));
@@ -236,6 +233,14 @@ main{max-width:1200px;margin:0 auto;padding:16px;}
 .segmented input#deputy-no:checked     + label[for="deputy-no"],
 .segmented input#blueorder-yes:checked + label[for="blueorder-yes"],
 .segmented input#blueorder-no:checked  + label[for="blueorder-no"]{
+  outline:3px solid var(--accent);
+}
+
+/* Team filter segmented highlights */
+.segmented.team-filter input#team-all:checked     + label[for="team-all"],
+.segmented.team-filter input#team-boy:checked     + label[for="team-boy"],
+.segmented.team-filter input#team-girl:checked    + label[for="team-girl"],
+.segmented.team-filter input#team-unknown:checked + label[for="team-unknown"]{
   outline:3px solid var(--accent);
 }
 

@@ -24,11 +24,26 @@
         </div>
       </div>
     </div>
+
     <div class="toolbar">
       <input id="search" class="search" type="search" placeholder="Search player..." aria-label="Search player" />
+
       <select id="factionFilter" class="filter" aria-label="Filter by faction">
         <option value="">All factions</option>
       </select>
+
+      <!-- New Team filter segmented toggle -->
+      <div class="segmented team-filter" role="group" aria-label="Filter by Team">
+        <input type="radio" name="teamFilter" id="team-all" value="" checked>
+        <label for="team-all">All</label>
+        <input type="radio" name="teamFilter" id="team-boy" value="boy">
+        <label for="team-boy">Boys</label>
+        <input type="radio" name="teamFilter" id="team-girl" value="girl">
+        <label for="team-girl">Girls</label>
+        <input type="radio" name="teamFilter" id="team-unknown" value="unknown">
+        <label for="team-unknown">Unknown</label>
+      </div>
+
       <label class="leaders-toggle">
         <input id="leadersOnly" type="checkbox" />
         Only show leaders
@@ -56,7 +71,7 @@
     </div>
   </template>
 
-  <!-- Modal kept same as v6; script will manage fields -->
+  <!-- Modal -->
   <dialog id="editorModal" class="modal">
     <form method="dialog" class="modal-card" id="modalForm">
       <h2 id="modalTitle">Edit</h2>

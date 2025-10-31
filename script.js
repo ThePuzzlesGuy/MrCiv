@@ -1,5 +1,5 @@
+// v8: Team filter segmented toggle (All / Boys / Girls / Unknown) with live counters.
 
-// v7 counters patch
 const NAMES = [
   "1Dont3now_tv",
   "1ns0mn1a_bot",
@@ -1040,6 +1040,8 @@ const countBoysEl = document.getElementById("count-boys");
 const countGirlsEl = document.getElementById("count-girls");
 const aliveBoysEl = document.getElementById("alive-boys");
 const aliveGirlsEl = document.getElementById("alive-girls");
+// team filter
+const teamFilterRadios = document.querySelectorAll('input[name="teamFilter"]');
 
 function headURL(name, size=100) { return `https://minotar.net/helm/${encodeURIComponent(name)}/${size}.png`; }
 
@@ -1059,7 +1061,7 @@ function leaderOf(n)  { const r = recOf(n); return (!r || typeof r === "string")
 function deputyOf(n)  { const r = recOf(n); return (!r || typeof r === "string") ? false : !!r.deputy; }
 function statusOf(n)  { const r = recOf(n); return (!r || typeof r === "string") ? "alive" : (r.status || "alive"); }
 function allegsOf(n)  { const r = recOf(n); return (!r || typeof r === "string") ? [] : (Array.isArray(r.allegiances) ? r.allegiances : []); }
-function blueOrderOf(n){ const r = recOf(n); return (!r || typeof r === "string") ? false : !!r.blueOrder; }
+function blueOrderOf(n) { const r = recOf(n); return (!r || typeof r === "string") ? false : !!r.blueOrder; }
 
 function setCardGenderClass(card, gender){ card.classList.remove("boy","girl"); if(gender==="boy")card.classList.add("boy"); if(gender==="girl")card.classList.add("girl"); }
 function setCardLeaderClass(card, isLeader){ card.classList.toggle("leader", !!isLeader); }
@@ -1111,20 +1113,25 @@ function renderAll() {
   const q = (search.value || "").trim().toLowerCase();
   const f = factionFilter.value || "";
   const leadersOnlyChecked = leadersOnly.checked;
+  const teamVal = (document.querySelector('input[name="teamFilter"]:checked')?.value || "").toLowerCase();
 
   NAMES.forEach((name) => {
     const faction = factionOf(name) || "None / Unassigned";
     const isLeaderish = leaderOf(name) || deputyOf(name);
+    const g = genderOf(name) || ""; // "" = Unknown
 
     if (q && !name.toLowerCase().includes(q)) return;
     if (f && faction !== f) return;
     if (leadersOnlyChecked && !isLeaderish) return;
+    if (teamVal === "boy" && g !== "boy") return;
+    if (teamVal === "girl" && g !== "girl") return;
+    if (teamVal === "unknown" && g !== "") return;
 
     const card = state.cards.get(name) || makeCard(name);
     card.querySelector(".faction-tag").textContent = faction + (allegsOf(name).length ? "  🤝" : "");
     updateTitleTooltip(card, name);
-    setCardGenderClass(card, genderOf(name));
-    setCardLeaderClass(card, leaderOf(name));
+    setCardGenderClass(card, g);
+    setCardLeaderClass(card, isLeaderish);
     setCardDeputyClass(card, deputyOf(name));
     setCardStatusClass(card, statusOf(name));
     card.classList.toggle("has-blueorder", blueOrderOf(name));
@@ -1132,7 +1139,7 @@ function renderAll() {
   });
 
   grid.appendChild(frag);
-  updateCounters(); // refresh header counts
+  updateCounters();
 }
 
 function openModal(name) {
@@ -1158,7 +1165,7 @@ function openModal(name) {
   modalForm.querySelector('#deputy-no').checked  = !deputy;
 
   const allegs = new Set(allegsOf(name));
-  [...modalAllegiances.options].forEach(opt => opt.selected = allegs.has(opt.value));
+  ;[...modalAllegiances.options].forEach(opt => opt.selected = allegs.has(opt.value));
 
   const bo = blueOrderOf(name);
   modalForm.querySelector('#blueorder-yes').checked = !!bo;
@@ -1209,6 +1216,7 @@ document.getElementById("saveBtn").addEventListener("click", async (e) => { e.pr
 search.addEventListener("input", renderAll);
 factionFilter.addEventListener("change", renderAll);
 leadersOnly.addEventListener("change", renderAll);
+teamFilterRadios.forEach(r => r.addEventListener("change", renderAll));
 
 function updateCounters() {
   let boys = 0, girls = 0, aliveBoys = 0, aliveGirls = 0;

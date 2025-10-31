@@ -42,12 +42,10 @@ export default async (req, context) => {
       return respond({ error: "Missing 'name' string" }, 400);
     }
 
-    // Back-compat normalize
     const rec = typeof current[name] === "string"
       ? { faction: current[name], gender: "", leader: false, deputy: false, status: "alive", allegiances: [], blueOrder: false }
       : (current[name] || { faction: "", gender: "", leader: false, deputy: false, status: "alive", allegiances: [], blueOrder: false });
 
-    // Merge only provided fields to avoid overwriting unrelated info
     if (faction !== undefined) {
       const f = (faction ?? "").toString();
       rec.faction = (f && f !== "None / Unassigned") ? f : (f === "" ? "" : (rec.faction || ""));
