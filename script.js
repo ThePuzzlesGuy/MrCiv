@@ -1,4 +1,4 @@
-// v9: Admin lock gating — only admins can open/edit and save changes.
+// v9.1: No explicit non-admin indicators or alerts. Clicking faces does nothing when not admin.
 
 const NAMES = [
   "1Dont3now_tv",
@@ -1037,7 +1037,6 @@ const modalFaction = document.getElementById("modalFaction");
 const modalAllegiances = document.getElementById("modalAllegiances");
 const modalForm = document.getElementById("modalForm");
 const adminBtn = document.getElementById("adminBtn");
-const lockIcon = document.getElementById("lockIcon");
 
 // counters
 const countBoysEl = document.getElementById("count-boys");
@@ -1061,8 +1060,7 @@ const ADMIN_USER = "TheBoysRosterAccess";
 const ADMIN_PASS = "TBR_MBCIV_500";
 const ADMIN_KEY = "roster_is_admin";
 const ADMIN_EXP_KEY = "roster_admin_expires";
-// default: remember for 12 hours
-const ADMIN_TTL_MS = 12 * 60 * 60 * 1000;
+const ADMIN_TTL_MS = 12 * 60 * 60 * 1000; // 12 hours
 
 function loadAdminFromStorage(){
   const flag = localStorage.getItem(ADMIN_KEY) === "1";
@@ -1104,14 +1102,14 @@ adminBtn?.addEventListener("click", () => {
     return;
   }
   const u = prompt("Admin username:");
-  if (u === null) return; // cancel
+  if (u === null) return;
   const p = prompt("Admin password:");
-  if (p === null) return; // cancel
+  if (p === null) return;
   if (u === ADMIN_USER && p === ADMIN_PASS) {
     setAdmin(true);
-    alert("Welcome, admin! Editing unlocked.");
+    // no alert
   } else {
-    alert("Incorrect credentials.");
+    // quiet failure
   }
 });
 
@@ -1143,8 +1141,7 @@ function updateTitleTooltip(node, name) {
   const extra = allegs.length ? ` | Allegiances: ${allegs.join(", ")}` : "";
   const isLeader = leaderOf(name) || deputyOf(name) ? " | Leader: Yes" : "";
   const status = statusOf(name);
-  const editInfo = state.isAdmin ? " | Editable" : " | Read‑only";
-  node.title = `Faction: ${faction}${extra} | Status: ${status}${isLeader}${editInfo}`;
+  node.title = `Faction: ${faction}${extra} | Status: ${status}${isLeader}`;
 }
 
 function makeCard(name) {
@@ -1171,7 +1168,7 @@ function makeCard(name) {
   node.classList.toggle("has-blueorder", blueOrderOf(name));
 
   btn.addEventListener("click", () => {
-    if (!state.isAdmin) { alert("Admins only. Click the lock to log in."); return; }
+    if (!state.isAdmin) return; // quiet ignore for non-admins
     openModal(name);
   });
 
@@ -1250,7 +1247,7 @@ function openModal(name) {
 function selectedAllegiances() { return [...modalAllegiances.options].filter(o => o.selected).map(o => o.value); }
 
 async function saveModal() {
-  if (!state.isAdmin) { alert("Admins only."); return; }
+  if (!state.isAdmin) return;
   const name = state.current; if (!name) return;
   const gender = modalForm.querySelector('input[name="gender"]:checked')?.value || "";
   const status = modalForm.querySelector('input[name="status"]:checked')?.value || (modalForm.querySelector('#s-dead').checked ? "dead" : "alive");
@@ -1277,14 +1274,13 @@ async function saveModal() {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        // Optional: simple header your Netlify function could check if you want to harden later
         "X-Roster-Admin": state.isAdmin ? "true" : "false"
       },
       body: JSON.stringify({ name, faction, gender, leader, deputy, status, allegiances, blueOrder })
     });
     if (!res.ok) throw new Error(await res.text());
   } catch (e) {
-    alert("Failed to save. Reloading...");
+    // quiet failure fallback
     location.reload();
   }
 }

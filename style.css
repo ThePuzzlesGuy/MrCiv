@@ -1,4 +1,4 @@
-/* === COMPLETE STYLE.CSS (v9 Admin Lock) === */
+/* === COMPLETE STYLE.CSS (v9.1 No explicit non-admin indicator) === */
 :root{
   --bg:#0b0d12;
   --card:#121722;
@@ -107,7 +107,7 @@ main{max-width:1200px;margin:0 auto;padding:16px;}
   filter:drop-shadow(0 1px 1px rgba(0,0,0,.6));
 }
 
-/* Dead X overlay — draw on the button wrapper (not the <img>) */
+/* Dead X overlay — for dead status only */
 .card.dead .head-btn{ position:relative; }
 .card.dead .head-btn::before{
   content:"";
@@ -139,10 +139,9 @@ main{max-width:1200px;margin:0 auto;padding:16px;}
   border-radius:10px;
   position:relative;
 }
-/* Read-only visual for non-admins */
-body:not(.admin) .head-btn{ cursor:not-allowed; }
-body:not(.admin) .card{ filter:saturate(.9); }
+/* NOTE: No non-admin cursor changes or hover overlays */
 
+/* Head image */
 .head{
   width:60px;
   height:60px;
