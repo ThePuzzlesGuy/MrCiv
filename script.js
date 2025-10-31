@@ -1020,6 +1020,7 @@ const FACTIONS = [
   "The Egalitarian Order",
   "Brociples",
   "The Bard's Hall",
+  "Derpublic",
   "None / Unassigned"
 ];
 const API = "/.netlify/functions/assignments";
