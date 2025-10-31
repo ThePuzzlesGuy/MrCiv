@@ -1,10 +1,14 @@
-# Minecraft Faction Roster — Global Persistence (Netlify Blobs)
+# Mr. Beast Civilization Roster — F.U.N. Edition (Global)
 
-- Shared, persisted assignments using **Netlify Functions** + **Netlify Blobs**.
-- Heads via Minotar `helm/<username>/100.png`.
-- API:
-  - `GET /.netlify/functions/assignments` → map
-  - `POST` with `{ "name": "Player", "faction": "The Peak" }`
-  - `POST` with `{ "bulk": { ... } }` to replace
+- Header updated per request.
+- **Search** bar filters by player name.
+- **Faction filter** dropdown lists all known factions and filters members.
+- Clicking a player's **head opens a modal** to set **Boy/Girl** + **Faction**.
+  - Boy = blue border; Girl = pink border.
+- Global persistence via Netlify Functions + Blobs.
+- Schema: `{{ [name]: {{ faction: string, gender: "boy"|"girl"|"" }} }}`
+- Backward compatible with earlier `{ name: "Faction" }` values.
 
-Deploy: connect repo to Netlify. Functions require Node 18+. Netlify will install dependencies from `package.json`.
+## Deploy
+1. Push to GitHub, connect to Netlify.
+2. No build command, publish dir `/`. Node 18+ for Functions.

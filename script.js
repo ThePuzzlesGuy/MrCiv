@@ -1,3 +1,6 @@
+// Global persistence via Netlify Blobs + Function
+// Schema: map[name] = { faction: string, gender: "boy"|"girl"|"" }
+// Heads: Minotar https://minotar.net/helm/<username>/<size>.png
 const NAMES = [
   "1Dont3now_tv",
   "1ns0mn1a_bot",
@@ -363,7 +366,7 @@ const NAMES = [
   "HiImCC",
   "HikaOKLM",
   "Hiratina",
-  "HobarT551",
+  "Hobart551",
   "Hobikage",
   "Honeybee39",
   "honeyplantt",
@@ -1020,103 +1023,172 @@ const FACTIONS = [
 ];
 const API = "/.netlify/functions/assignments";
 
+const grid = document.getElementById("grid");
+const template = document.getElementById("cardTemplate");
+const search = document.getElementById("search");
+const factionFilter = document.getElementById("factionFilter");
+const modal = document.getElementById("editorModal");
+const modalTitle = document.getElementById("modalTitle");
+const modalFaction = document.getElementById("modalFaction");
+const modalForm = document.getElementById("modalForm");
+
 function headURL(name, size=100) {
   return `https://minotar.net/helm/${encodeURIComponent(name)}/${size}.png`;
 }
 
-const grid = document.getElementById("grid");
-const template = document.getElementById("cardTemplate");
-const exportBtn = document.getElementById("exportBtn");
-const importFile = document.getElementById("importFile");
+let state = {
+  assignments: {}, // name -> {faction, gender}
+  cards: new Map(), // name -> DOM
+  current: null, // name being edited
+};
 
-function makeCard(name, assignedFaction, idx) {
+function populateFactionControls() {
+  const opts = ['<option value="">All factions</option>']
+    .concat(FACTIONS.map(f => `<option value="${f}">${f}</option>`));
+  factionFilter.innerHTML = opts.join("");
+  modalFaction.innerHTML = FACTIONS.map(f => `<option value="${f}">${f}</option>`).join("");
+}
+
+function factionOf(name) {
+  const rec = state.assignments[name];
+  if (!rec) return "";
+  if (typeof rec === "string") return rec; // backward compat (old schema)
+  return rec.faction || "";
+}
+
+function genderOf(name) {
+  const rec = state.assignments[name];
+  if (!rec || typeof rec === "string") return "";
+  return rec.gender || "";
+}
+
+function setCardGenderClass(card, gender) {
+  card.classList.remove("boy","girl");
+  if (gender === "boy") card.classList.add("boy");
+  if (gender === "girl") card.classList.add("girl");
+}
+
+function makeCard(name) {
   const node = template.content.firstElementChild.cloneNode(true);
   const nameEl = node.querySelector(".name");
   const tagEl = node.querySelector(".faction-tag");
   const img = node.querySelector(".head");
-  const select = node.querySelector(".select");
+  const btn = node.querySelector(".head-btn");
 
   nameEl.textContent = name;
-  tagEl.textContent = assignedFaction || "None / Unassigned";
-  node.title = assignedFaction ? `Faction: ${assignedFaction}` : "Faction: None / Unassigned";
   img.src = headURL(name, 100);
   img.alt = name + " head";
 
-  select.innerHTML = FACTIONS.map(f => `<option value="${f}">${f}</option>`).join("");
-  select.value = assignedFaction || "None / Unassigned";
+  const faction = factionOf(name) || "None / Unassigned";
+  tagEl.textContent = faction;
+  node.title = "Faction: " + faction;
 
-  function openEditor() { node.classList.add("editing"); select.focus(); }
-  function closeEditor() { node.classList.remove("editing"); }
+  setCardGenderClass(node, genderOf(name));
 
-  nameEl.addEventListener("click", openEditor);
-  node.addEventListener("keydown", (e) => { if (e.key === "Enter") openEditor(); });
+  // Click head -> open modal
+  btn.addEventListener("click", () => openModal(name));
 
-  node.querySelector(".save").addEventListener("click", async () => {
-    const chosen = select.value === "None / Unassigned" ? "" : select.value;
-    // optimistic UI
-    tagEl.textContent = chosen || "None / Unassigned";
-    node.title = chosen ? `Faction: ${chosen}` : "Faction: None / Unassigned";
-    closeEditor();
-    try {
-      const res = await fetch(API, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, faction: chosen })
-      });
-      if (!res.ok) throw new Error(await res.text());
-    } catch (e) {
-      alert("Save failed. Reloading…");
-      location.reload();
-    }
-  });
-
-  node.querySelector(".cancel").addEventListener("click", closeEditor);
+  state.cards.set(name, node);
   return node;
 }
+
+function renderAll() {
+  grid.innerHTML = "";
+  const frag = document.createDocumentFragment();
+
+  const q = search.value.trim().toLowerCase();
+  const f = factionFilter.value;
+
+  NAMES.forEach((name) => {
+    const faction = factionOf(name) || "None / Unassigned";
+    if (q && !name.toLowerCase().includes(q)) return;
+    if (f && faction !== f) return;
+
+    const card = state.cards.get(name) || makeCard(name);
+    // update faction/gender display in case data changed
+    card.querySelector(".faction-tag").textContent = faction;
+    card.title = "Faction: " + faction;
+    setCardGenderClass(card, genderOf(name));
+    frag.appendChild(card);
+  });
+
+  grid.appendChild(frag);
+}
+
+function openModal(name) {
+  state.current = name;
+  modalTitle.textContent = "Edit — " + name;
+
+  // Set gender radios
+  const g = genderOf(name);
+  modalForm.querySelectorAll('input[name="gender"]').forEach(r => (r.checked = (r.value === g)));
+  // default if none checked
+  if (!modalForm.querySelector('input[name="gender"]:checked')) {
+    modalForm.querySelector('#g-none').checked = true;
+  }
+
+  // Set faction
+  const faction = factionOf(name) || "None / Unassigned";
+  modalFaction.value = faction;
+
+  modal.showModal();
+}
+
+async function saveModal() {
+  const name = state.current;
+  if (!name) return;
+
+  const gender = modalForm.querySelector('input[name="gender"]:checked')?.value || "";
+  const faction = modalFaction.value === "None / Unassigned" ? "" : modalFaction.value;
+
+  // optimistic update
+  state.assignments[name] = { faction, gender };
+  renderAll();
+
+  try {
+    const res = await fetch(API, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, faction, gender })
+    });
+    if (!res.ok) throw new Error(await res.text());
+  } catch (e) {
+    alert("Failed to save. Reloading...");
+    location.reload();
+  }
+}
+
+modal.addEventListener("close", () => { state.current = null; });
+document.getElementById("saveBtn").addEventListener("click", async (e) => {
+  e.preventDefault();
+  await saveModal();
+  modal.close();
+});
+
+// Live filters
+search.addEventListener("input", renderAll);
+factionFilter.addEventListener("change", renderAll);
 
 async function loadAll() {
   const res = await fetch(API, { cache: "no-store" });
   if (!res.ok) throw new Error("Failed to load assignments");
-  return res.json();
+  const map = await res.json();
+  // normalize to new schema
+  const normalized = {};
+  for (const name of NAMES) {
+    const v = map[name];
+    if (!v) continue;
+    if (typeof v === "string") normalized[name] = { faction: v, gender: "" };
+    else normalized[name] = { faction: v.faction || "", gender: v.gender || "" };
+  }
+  return normalized;
 }
 
 async function init() {
-  const assignments = await loadAll();
-  const frag = document.createDocumentFragment();
-  NAMES.forEach((name, i) => {
-    const card = makeCard(name, assignments[name] || "", i);
-    frag.appendChild(card);
-  });
-  grid.appendChild(frag);
+  populateFactionControls();
+  state.assignments = await loadAll();
+  // initial render
+  renderAll();
 }
-
-exportBtn.addEventListener("click", async () => {
-  const map = await loadAll();
-  const blob = new Blob([JSON.stringify(map, null, 2)], { type:"application/json" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "assignments.json";
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-});
-
-importFile.addEventListener("change", async (e) => {
-  const file = e.target.files?.[0];
-  if (!file) return;
-  try {
-    const text = await file.text();
-    const map = JSON.parse(text);
-    const res = await fetch(API, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ bulk: map })
-    });
-    if (!res.ok) throw new Error(await res.text());
-    location.reload();
-  } catch (err) {
-    alert("Import failed: " + err.message);
-  } finally { e.target.value = ""; }
-});
 
 init();

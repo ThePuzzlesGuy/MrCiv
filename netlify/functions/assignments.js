@@ -6,7 +6,6 @@ const KEY = "assignments.json";
 export default async (req, context) => {
   const store = getStore(STORE);
 
-  // Preflight
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 204, headers: cors() });
   }
@@ -31,13 +30,22 @@ export default async (req, context) => {
 
     const name = body?.name;
     const faction = (body?.faction ?? "").toString();
+    const gender = (body?.gender ?? "").toString(); // "", "boy", "girl"
 
     if (!name || typeof name !== "string") {
       return respond({ error: "Missing 'name' string" }, 400);
     }
 
-    if (!faction || faction === "None / Unassigned") delete current[name];
-    else current[name] = faction;
+    // Backward compat: current[name] may be a string (faction)
+    const rec = typeof current[name] === "string" ? { faction: current[name], gender: "" }
+              : (current[name] || { faction: "", gender: "" });
+
+    rec.faction = (faction && faction !== "None / Unassigned") ? faction : "";
+    if (gender === "boy" || gender === "girl" || gender === "") rec.gender = gender;
+
+    // If both empty, delete entry to keep storage minimal
+    if (!rec.faction && !rec.gender) delete current[name];
+    else current[name] = rec;
 
     await store.set(KEY, JSON.stringify(current));
     return respond({ ok: true });
