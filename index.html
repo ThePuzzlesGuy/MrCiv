@@ -7,18 +7,22 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-<header class="site-header">
-  <h1>
-    Mr. Beast Civilization Roster - Brought to you by
-    <a href="https://discord.gg/xhpqQ8ja" target="_blank" rel="noopener noreferrer">F.U.N.</a>
-  </h1>
-  <div class="toolbar">
-    <input id="search" class="search" type="search" placeholder="Search player..." aria-label="Search player" />
-    <select id="factionFilter" class="filter" aria-label="Filter by faction">
-      <option value="">All factions</option>
-    </select>
-  </div>
-</header>
+  <header class="site-header">
+    <h1>
+      Mr. Beast Civilization Roster - Brought to you by
+      <a href="https://discord.gg/xhpqQ8ja" target="_blank" rel="noopener noreferrer">F.U.N.</a>
+    </h1>
+    <div class="toolbar">
+      <input id="search" class="search" type="search" placeholder="Search player..." aria-label="Search player" />
+      <select id="factionFilter" class="filter" aria-label="Filter by faction">
+        <option value="">All factions</option>
+      </select>
+      <label class="leaders-toggle">
+        <input id="leadersOnly" type="checkbox" />
+        Only show leaders
+      </label>
+    </div>
+  </header>
 
   <main>
     <div id="grid" class="grid" aria-live="polite"></div>
@@ -57,6 +61,15 @@
       <div class="field">
         <label for="modalFaction">Faction</label>
         <select id="modalFaction" class="select"></select>
+      </div>
+      <div class="field">
+        <label>Leader</label>
+        <div class="segmented">
+          <input type="radio" name="leader" id="leader-yes" value="true">
+          <label for="leader-yes">Yes</label>
+          <input type="radio" name="leader" id="leader-no" value="false">
+          <label for="leader-no">No</label>
+        </div>
       </div>
       <div class="actions">
         <button value="cancel" class="btn btn-ghost">Cancel</button>

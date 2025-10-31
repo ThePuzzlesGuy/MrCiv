@@ -73,8 +73,18 @@ main{max-width:1200px;margin:0 auto;padding:16px;}
 .row{display:flex; align-items:center; gap:12px;}
 .head-btn{
   padding:0; border:0; background:none; cursor:pointer;
-  border-radius:10px;
+  border-radius:10px; position:relative;
 }
+/* Crown overlay when leader */
+.card.leader .head-btn::after{
+  content: "👑";
+  position: absolute;
+  top: -8px;
+  left: -8px;
+  font-size: 20px;
+  filter: drop-shadow(0 1px 1px rgba(0,0,0,.6));
+}
+
 .head{
   width:60px; height:60px; image-rendering:pixelated;
   border-radius:10px;
@@ -118,3 +128,13 @@ main{max-width:1200px;margin:0 auto;padding:16px;}
 .btn{ background:var(--card); color:var(--ink); border:1px solid var(--border); padding:8px 12px; border-radius:12px; cursor:pointer; }
 .btn:hover{ border-color:var(--accent); }
 .btn-ghost{ background:transparent; }
+
+/* Leaders-only toggle style */
+.leaders-toggle{
+  display:inline-flex; align-items:center; gap:6px;
+  background:var(--card);
+  border:1px solid var(--border);
+  padding:8px 12px; border-radius:12px;
+  user-select:none;
+}
+.leaders-toggle input{ transform: translateY(1px); }

@@ -19,6 +19,7 @@ export default async (req, context) => {
   if (req.method === "POST") {
     let body = {};
     try { body = await req.json(); } catch {}
+
     let current = {};
     const raw = await store.get(KEY, { consistency: "strong" });
     if (raw) current = JSON.parse(raw);
@@ -28,23 +29,25 @@ export default async (req, context) => {
       return respond({ ok: true, replaced: true });
     }
 
-    const name = body?.name;
+    const name    = body?.name;
     const faction = (body?.faction ?? "").toString();
-    const gender = (body?.gender ?? "").toString(); // "", "boy", "girl"
+    const gender  = (body?.gender  ?? "").toString();   // "", "boy", "girl"
+    const leader  = !!body?.leader;                     // boolean
 
     if (!name || typeof name !== "string") {
       return respond({ error: "Missing 'name' string" }, 400);
     }
 
-    // Backward compat: current[name] may be a string (faction)
-    const rec = typeof current[name] === "string" ? { faction: current[name], gender: "" }
-              : (current[name] || { faction: "", gender: "" });
+    // Back-compat normalize
+    const rec = typeof current[name] === "string"
+      ? { faction: current[name], gender: "", leader: false }
+      : (current[name] || { faction: "", gender: "", leader: false });
 
     rec.faction = (faction && faction !== "None / Unassigned") ? faction : "";
     if (gender === "boy" || gender === "girl" || gender === "") rec.gender = gender;
+    rec.leader = !!leader;
 
-    // If both empty, delete entry to keep storage minimal
-    if (!rec.faction && !rec.gender) delete current[name];
+    if (!rec.faction && !rec.gender && !rec.leader) delete current[name];
     else current[name] = rec;
 
     await store.set(KEY, JSON.stringify(current));

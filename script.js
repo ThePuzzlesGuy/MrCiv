@@ -1,6 +1,4 @@
-// Global persistence via Netlify Blobs + Function
-// Schema: map[name] = { faction: string, gender: "boy"|"girl"|"" }
-// Heads: Minotar https://minotar.net/helm/<username>/<size>.png
+// Schema: map[name] = { faction: string, gender: "boy"|"girl"|"" , leader: boolean }
 const NAMES = [
   "1Dont3now_tv",
   "1ns0mn1a_bot",
@@ -366,7 +364,6 @@ const NAMES = [
   "HiImCC",
   "HikaOKLM",
   "Hiratina",
-  "Hobart551",
   "Hobikage",
   "Honeybee39",
   "honeyplantt",
@@ -1021,12 +1018,14 @@ const FACTIONS = [
   "The Egalitarian Order",
   "None / Unassigned"
 ];
+
 const API = "/.netlify/functions/assignments";
 
 const grid = document.getElementById("grid");
 const template = document.getElementById("cardTemplate");
 const search = document.getElementById("search");
 const factionFilter = document.getElementById("factionFilter");
+const leadersOnly = document.getElementById("leadersOnly");
 const modal = document.getElementById("editorModal");
 const modalTitle = document.getElementById("modalTitle");
 const modalFaction = document.getElementById("modalFaction");
@@ -1037,9 +1036,9 @@ function headURL(name, size=100) {
 }
 
 let state = {
-  assignments: {}, // name -> {faction, gender}
-  cards: new Map(), // name -> DOM
-  current: null, // name being edited
+  assignments: {}, // name -> {faction, gender, leader}
+  cards: new Map(),
+  current: null,
 };
 
 function populateFactionControls() {
@@ -1052,20 +1051,27 @@ function populateFactionControls() {
 function factionOf(name) {
   const rec = state.assignments[name];
   if (!rec) return "";
-  if (typeof rec === "string") return rec; // backward compat (old schema)
+  if (typeof rec === "string") return rec; // back-compat
   return rec.faction || "";
 }
-
 function genderOf(name) {
   const rec = state.assignments[name];
   if (!rec || typeof rec === "string") return "";
   return rec.gender || "";
+}
+function leaderOf(name) {
+  const rec = state.assignments[name];
+  if (!rec || typeof rec === "string") return false;
+  return !!rec.leader;
 }
 
 function setCardGenderClass(card, gender) {
   card.classList.remove("boy","girl");
   if (gender === "boy") card.classList.add("boy");
   if (gender === "girl") card.classList.add("girl");
+}
+function setCardLeaderClass(card, isLeader) {
+  card.classList.toggle("leader", !!isLeader);
 }
 
 function makeCard(name) {
@@ -1084,8 +1090,8 @@ function makeCard(name) {
   node.title = "Faction: " + faction;
 
   setCardGenderClass(node, genderOf(name));
+  setCardLeaderClass(node, leaderOf(name));
 
-  // Click head -> open modal
   btn.addEventListener("click", () => openModal(name));
 
   state.cards.set(name, node);
@@ -1098,17 +1104,21 @@ function renderAll() {
 
   const q = search.value.trim().toLowerCase();
   const f = factionFilter.value;
+  const leadersOnlyChecked = leadersOnly?.checked;
 
   NAMES.forEach((name) => {
     const faction = factionOf(name) || "None / Unassigned";
+    const isLeader = leaderOf(name);
+
     if (q && !name.toLowerCase().includes(q)) return;
     if (f && faction !== f) return;
+    if (leadersOnlyChecked && !isLeader) return;
 
     const card = state.cards.get(name) || makeCard(name);
-    // update faction/gender display in case data changed
     card.querySelector(".faction-tag").textContent = faction;
     card.title = "Faction: " + faction;
     setCardGenderClass(card, genderOf(name));
+    setCardLeaderClass(card, isLeader);
     frag.appendChild(card);
   });
 
@@ -1119,17 +1129,21 @@ function openModal(name) {
   state.current = name;
   modalTitle.textContent = "Edit — " + name;
 
-  // Set gender radios
+  // Gender
   const g = genderOf(name);
   modalForm.querySelectorAll('input[name="gender"]').forEach(r => (r.checked = (r.value === g)));
-  // default if none checked
   if (!modalForm.querySelector('input[name="gender"]:checked')) {
     modalForm.querySelector('#g-none').checked = true;
   }
 
-  // Set faction
+  // Faction
   const faction = factionOf(name) || "None / Unassigned";
   modalFaction.value = faction;
+
+  // Leader
+  const leader = leaderOf(name);
+  modalForm.querySelector('#leader-yes').checked = !!leader;
+  modalForm.querySelector('#leader-no').checked  = !leader;
 
   modal.showModal();
 }
@@ -1140,16 +1154,17 @@ async function saveModal() {
 
   const gender = modalForm.querySelector('input[name="gender"]:checked')?.value || "";
   const faction = modalFaction.value === "None / Unassigned" ? "" : modalFaction.value;
+  const leader = modalForm.querySelector('#leader-yes')?.checked === true;
 
   // optimistic update
-  state.assignments[name] = { faction, gender };
+  state.assignments[name] = { faction, gender, leader };
   renderAll();
 
   try {
     const res = await fetch(API, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, faction, gender })
+      body: JSON.stringify({ name, faction, gender, leader })
     });
     if (!res.ok) throw new Error(await res.text());
   } catch (e) {
@@ -1165,30 +1180,32 @@ document.getElementById("saveBtn").addEventListener("click", async (e) => {
   modal.close();
 });
 
-// Live filters
 search.addEventListener("input", renderAll);
 factionFilter.addEventListener("change", renderAll);
+leadersOnly?.addEventListener("change", renderAll);
 
 async function loadAll() {
   const res = await fetch(API, { cache: "no-store" });
   if (!res.ok) throw new Error("Failed to load assignments");
   const map = await res.json();
-  // normalize to new schema
   const normalized = {};
   for (const name of NAMES) {
     const v = map[name];
     if (!v) continue;
-    if (typeof v === "string") normalized[name] = { faction: v, gender: "" };
-    else normalized[name] = { faction: v.faction || "", gender: v.gender || "" };
+    if (typeof v === "string") normalized[name] = { faction: v, gender: "", leader: false };
+    else normalized[name] = {
+      faction: v.faction || "",
+      gender:  v.gender  || "",
+      leader:  !!v.leader
+    };
   }
   return normalized;
 }
 
-async function init() {
+function init() {
   populateFactionControls();
-  state.assignments = await loadAll();
-  // initial render
-  renderAll();
+  loadAll().then(data => { state.assignments = data; renderAll(); })
+           .catch(() => renderAll());
 }
 
 init();
