@@ -1129,7 +1129,7 @@ function renderAll() {
 
 function openModal(name) {
   state.current = name;
-  modalTitle.textContent = "Edit — " + name;
+  modalTitle.textContent = "Player: " + name;
 
   // Team
   const g = genderOf(name);
