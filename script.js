@@ -1015,11 +1015,11 @@ const FACTIONS = [
   "Boys Next Door",
   "F.U.N. Fellas",
   "The Archivists' Library",
-  "The Blue Order",
   "Domnul University",
   "DUDE CITY",
   "The Egalitarian Order",
   "Brociples",
+  "The Bard's Hall",
   "None / Unassigned"
 ];
 const API = "/.netlify/functions/assignments";
