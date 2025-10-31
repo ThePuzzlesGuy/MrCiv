@@ -8,10 +8,22 @@
 </head>
 <body>
   <header class="site-header">
-    <h1>
-      Mr. Beast Civilization Roster - Brought to you by
-      <a href="https://discord.gg/xhpqQ8ja" target="_blank" rel="noopener noreferrer">F.U.N.</a>
-    </h1>
+    <div class="title-and-counters">
+      <h1>
+        Mr. Beast Civilization Roster - Brought to you by
+        <a href="https://discord.gg/xhpqQ8ja" target="_blank" rel="noopener noreferrer">F.U.N.</a>
+      </h1>
+      <div class="counters" aria-live="polite">
+        <div class="counter">
+          <div class="counter-line"><span>Boys:</span> <strong id="count-boys">0</strong></div>
+          <div class="counter-sub">Alive: <strong id="alive-boys">0</strong></div>
+        </div>
+        <div class="counter">
+          <div class="counter-line"><span>Girls:</span> <strong id="count-girls">0</strong></div>
+          <div class="counter-sub">Alive: <strong id="alive-girls">0</strong></div>
+        </div>
+      </div>
+    </div>
     <div class="toolbar">
       <input id="search" class="search" type="search" placeholder="Search player..." aria-label="Search player" />
       <select id="factionFilter" class="filter" aria-label="Filter by faction">
@@ -44,7 +56,7 @@
     </div>
   </template>
 
-  <!-- Modal (revamped layout) -->
+  <!-- Modal kept same as v6; script will manage fields -->
   <dialog id="editorModal" class="modal">
     <form method="dialog" class="modal-card" id="modalForm">
       <h2 id="modalTitle">Edit</h2>
