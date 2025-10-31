@@ -1,4 +1,4 @@
-/* === COMPLETE STYLE.CSS (v8 Team Filter) === */
+/* === COMPLETE STYLE.CSS (v9 Admin Lock) === */
 :root{
   --bg:#0b0d12;
   --card:#121722;
@@ -11,6 +11,7 @@
   --boy:#3da4ff;
   --girl:#ff6fb1;
   --danger:#ff4b4b;
+  --warn:#ffce3d;
 }
 
 *{box-sizing:border-box}
@@ -73,7 +74,7 @@ main{max-width:1200px;margin:0 auto;padding:16px;}
   padding:10px;
   min-height:84px;
   outline:none;
-  transition:border-color .2s,box-shadow .2s,opacity .2s;
+  transition:border-color .2s,box-shadow .2s,opacity .2s,filter .2s;
 }
 .card:focus{box-shadow:0 0 0 4px var(--ring);}
 .card.boy{border-color:var(--boy);}
@@ -138,6 +139,10 @@ main{max-width:1200px;margin:0 auto;padding:16px;}
   border-radius:10px;
   position:relative;
 }
+/* Read-only visual for non-admins */
+body:not(.admin) .head-btn{ cursor:not-allowed; }
+body:not(.admin) .card{ filter:saturate(.9); }
+
 .head{
   width:60px;
   height:60px;
@@ -269,3 +274,19 @@ main{max-width:1200px;margin:0 auto;padding:16px;}
   user-select:none;
 }
 .leaders-toggle input{transform:translateY(1px);}
+
+/* Admin lock button */
+.icon-btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:36px;height:36px;
+  border-radius:10px;
+  border:1px solid var(--border);
+  background:var(--card);
+  cursor:pointer;
+}
+.icon-btn svg{fill:var(--muted);}
+.icon-btn:hover{border-color:var(--accent);}
+body.admin .icon-btn{ box-shadow:0 0 0 3px rgba(63,209,102,.2) inset; }
+body.admin .icon-btn svg{ fill:var(--ok);}

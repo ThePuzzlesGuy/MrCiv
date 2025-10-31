@@ -1,4 +1,4 @@
-// v8: Team filter segmented toggle (All / Boys / Girls / Unknown) with live counters.
+// v9: Admin lock gating — only admins can open/edit and save changes.
 
 const NAMES = [
   "1Dont3now_tv",
@@ -1023,6 +1023,7 @@ const FACTIONS = [
   "Derpublic",
   "None / Unassigned"
 ];
+
 const API = "/.netlify/functions/assignments";
 
 const grid = document.getElementById("grid");
@@ -1035,6 +1036,8 @@ const modalTitle = document.getElementById("modalTitle");
 const modalFaction = document.getElementById("modalFaction");
 const modalAllegiances = document.getElementById("modalAllegiances");
 const modalForm = document.getElementById("modalForm");
+const adminBtn = document.getElementById("adminBtn");
+const lockIcon = document.getElementById("lockIcon");
 
 // counters
 const countBoysEl = document.getElementById("count-boys");
@@ -1046,8 +1049,73 @@ const teamFilterRadios = document.querySelectorAll('input[name="teamFilter"]');
 
 function headURL(name, size=100) { return `https://minotar.net/helm/${encodeURIComponent(name)}/${size}.png`; }
 
-let state = { assignments: {}, cards: new Map(), current: null };
+let state = {
+  assignments: {},
+  cards: new Map(),
+  current: null,
+  isAdmin: false,
+};
 
+// ===== Admin helpers =====
+const ADMIN_USER = "TheBoysRosterAccess";
+const ADMIN_PASS = "TBR_MBCIV_500";
+const ADMIN_KEY = "roster_is_admin";
+const ADMIN_EXP_KEY = "roster_admin_expires";
+// default: remember for 12 hours
+const ADMIN_TTL_MS = 12 * 60 * 60 * 1000;
+
+function loadAdminFromStorage(){
+  const flag = localStorage.getItem(ADMIN_KEY) === "1";
+  const exp = parseInt(localStorage.getItem(ADMIN_EXP_KEY) || "0", 10);
+  const now = Date.now();
+  if (flag && exp && exp > now) {
+    state.isAdmin = true;
+  } else {
+    state.isAdmin = false;
+    localStorage.removeItem(ADMIN_KEY);
+    localStorage.removeItem(ADMIN_EXP_KEY);
+  }
+  updateAdminUI();
+}
+
+function setAdmin(on){
+  state.isAdmin = !!on;
+  if (state.isAdmin) {
+    localStorage.setItem(ADMIN_KEY, "1");
+    localStorage.setItem(ADMIN_EXP_KEY, String(Date.now() + ADMIN_TTL_MS));
+  } else {
+    localStorage.removeItem(ADMIN_KEY);
+    localStorage.removeItem(ADMIN_EXP_KEY);
+  }
+  updateAdminUI();
+  renderAll();
+}
+
+function updateAdminUI(){
+  document.body.classList.toggle("admin", state.isAdmin);
+  adminBtn.setAttribute("aria-pressed", state.isAdmin ? "true" : "false");
+  adminBtn.title = state.isAdmin ? "Admin: unlocked (click to log out)" : "Admin: locked (click to log in)";
+  adminBtn.setAttribute("aria-label", adminBtn.title);
+}
+
+adminBtn?.addEventListener("click", () => {
+  if (state.isAdmin) {
+    if (confirm("Log out of admin?")) setAdmin(false);
+    return;
+  }
+  const u = prompt("Admin username:");
+  if (u === null) return; // cancel
+  const p = prompt("Admin password:");
+  if (p === null) return; // cancel
+  if (u === ADMIN_USER && p === ADMIN_PASS) {
+    setAdmin(true);
+    alert("Welcome, admin! Editing unlocked.");
+  } else {
+    alert("Incorrect credentials.");
+  }
+});
+
+// ====== Data accessors ======
 function populateFactionControls() {
   const opts = ['<option value="">All factions</option>'].concat(FACTIONS.map(f => `<option value="${f}">${f}</option>`));
   factionFilter.innerHTML = opts.join("");
@@ -1075,7 +1143,8 @@ function updateTitleTooltip(node, name) {
   const extra = allegs.length ? ` | Allegiances: ${allegs.join(", ")}` : "";
   const isLeader = leaderOf(name) || deputyOf(name) ? " | Leader: Yes" : "";
   const status = statusOf(name);
-  node.title = `Faction: ${faction}${extra} | Status: ${status}${isLeader}`;
+  const editInfo = state.isAdmin ? " | Editable" : " | Read‑only";
+  node.title = `Faction: ${faction}${extra} | Status: ${status}${isLeader}${editInfo}`;
 }
 
 function makeCard(name) {
@@ -1101,7 +1170,10 @@ function makeCard(name) {
   setCardStatusClass(node, statusOf(name));
   node.classList.toggle("has-blueorder", blueOrderOf(name));
 
-  btn.addEventListener("click", () => openModal(name));
+  btn.addEventListener("click", () => {
+    if (!state.isAdmin) { alert("Admins only. Click the lock to log in."); return; }
+    openModal(name);
+  });
 
   state.cards.set(name, node);
   return node;
@@ -1178,6 +1250,7 @@ function openModal(name) {
 function selectedAllegiances() { return [...modalAllegiances.options].filter(o => o.selected).map(o => o.value); }
 
 async function saveModal() {
+  if (!state.isAdmin) { alert("Admins only."); return; }
   const name = state.current; if (!name) return;
   const gender = modalForm.querySelector('input[name="gender"]:checked')?.value || "";
   const status = modalForm.querySelector('input[name="status"]:checked')?.value || (modalForm.querySelector('#s-dead').checked ? "dead" : "alive");
@@ -1202,7 +1275,11 @@ async function saveModal() {
   try {
     const res = await fetch(API, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        // Optional: simple header your Netlify function could check if you want to harden later
+        "X-Roster-Admin": state.isAdmin ? "true" : "false"
+      },
       body: JSON.stringify({ name, faction, gender, leader, deputy, status, allegiances, blueOrder })
     });
     if (!res.ok) throw new Error(await res.text());
@@ -1256,5 +1333,9 @@ async function loadAll() {
   return normalized;
 }
 
-function init() { populateFactionControls(); loadAll().then(d => { state.assignments = d; renderAll(); }).catch(() => renderAll()); }
+function init() {
+  populateFactionControls();
+  loadAdminFromStorage();
+  loadAll().then(d => { state.assignments = d; renderAll(); }).catch(() => renderAll());
+}
 init();
