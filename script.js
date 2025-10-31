@@ -1015,7 +1015,6 @@ const FACTIONS = [
   "Boys Next Door",
   "F.U.N. Fellas",
   "The Archivists' Library",
-  "The Blue Order",
   "Domnul University",
   "DUDE CITY",
   "The Egalitarian Order",
