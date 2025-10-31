@@ -138,3 +138,5 @@ main{max-width:1200px;margin:0 auto;padding:16px;}
   user-select:none;
 }
 .leaders-toggle input{ transform: translateY(1px); }
+
+.muted{ color:var(--muted); font-size:12px; }

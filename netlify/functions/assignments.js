@@ -31,8 +31,9 @@ export default async (req, context) => {
 
     const name    = body?.name;
     const faction = (body?.faction ?? "").toString();
-    const gender  = (body?.gender  ?? "").toString();   // "", "boy", "girl"
-    const leader  = !!body?.leader;                     // boolean
+    const gender  = (body?.gender  ?? "").toString();           // "", "boy", "girl"
+    const leader  = (typeof body?.leader === "boolean") ? !!body.leader : undefined;
+    const allegiances = Array.isArray(body?.allegiances) ? body.allegiances.filter(x => typeof x === "string") : undefined;
 
     if (!name || typeof name !== "string") {
       return respond({ error: "Missing 'name' string" }, 400);
@@ -40,14 +41,19 @@ export default async (req, context) => {
 
     // Back-compat normalize
     const rec = typeof current[name] === "string"
-      ? { faction: current[name], gender: "", leader: false }
-      : (current[name] || { faction: "", gender: "", leader: false });
+      ? { faction: current[name], gender: "", leader: false, allegiances: [] }
+      : (current[name] || { faction: "", gender: "", leader: false, allegiances: [] });
 
-    rec.faction = (faction && faction !== "None / Unassigned") ? faction : "";
+    // Merge only provided fields (to avoid overwriting unrelated info)
+    if (faction !== undefined) {
+      rec.faction = (faction && faction !== "None / Unassigned") ? faction : (faction === "" ? "" : (rec.faction || ""));
+    }
     if (gender === "boy" || gender === "girl" || gender === "") rec.gender = gender;
-    rec.leader = !!leader;
+    if (leader !== undefined) rec.leader = !!leader;
+    if (allegiances !== undefined) rec.allegiances = allegiances;
 
-    if (!rec.faction && !rec.gender && !rec.leader) delete current[name];
+    const empty = !(rec.faction) && !(rec.gender) && !rec.leader && (!rec.allegiances || rec.allegiances.length === 0);
+    if (empty) delete current[name];
     else current[name] = rec;
 
     await store.set(KEY, JSON.stringify(current));
