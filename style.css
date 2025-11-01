@@ -1,4 +1,4 @@
-/* === COMPLETE STYLE.CSS (v9.1 No explicit non-admin indicator) === */
+/* === COMPLETE STYLE.CSS (v10 Dead/Alive filter added) === */
 :root{
   --bg:#0b0d12;
   --card:#121722;
@@ -226,7 +226,7 @@ main{max-width:1200px;margin:0 auto;padding:16px;}
 .segmented input#g-boy:checked + label[for="g-boy"]{ outline:3px solid var(--boy); }
 .segmented input#g-girl:checked + label[for="g-girl"]{ outline:3px solid var(--girl); }
 
-/* Status highlights */
+/* Status highlights (in modal) */
 .segmented input#s-alive:checked + label[for="s-alive"]{ outline:3px solid var(--ok); }
 .segmented input#s-dead:checked  + label[for="s-dead"]{ outline:3px solid var(--danger); }
 
@@ -245,6 +245,13 @@ main{max-width:1200px;margin:0 auto;padding:16px;}
 .segmented.team-filter input#team-boy:checked     + label[for="team-boy"],
 .segmented.team-filter input#team-girl:checked    + label[for="team-girl"],
 .segmented.team-filter input#team-unknown:checked + label[for="team-unknown"]{
+  outline:3px solid var(--accent);
+}
+
+/* Status filter segmented highlights (toolbar) */
+.segmented.status-filter input#status-all:checked   + label[for="status-all"],
+.segmented.status-filter input#status-alive:checked + label[for="status-alive"],
+.segmented.status-filter input#status-dead:checked  + label[for="status-dead"]{
   outline:3px solid var(--accent);
 }
 
