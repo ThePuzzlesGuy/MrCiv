@@ -78,8 +78,25 @@ const NAMES = [
 ];
 
 const FACTIONS = [
-  "The Peak","HD Clan","Greeko Boys","Men in Suits","The Veterans","Goober Bay","The Pharaonate","Ironcrest Clan","Boys Next Door","F.U.N. Fellas",
-  "The Archivists' Library","Domnul University","DUDE CITY","The Egalitarian Order","Brociples","The Bard's Hall","Derpublic","None / Unassigned"
+  "Boys Next Door",
+  "Brociples",
+  "Derpublic",
+  "Domnul University",
+  "DUDE CITY",
+  "F.U.N. Fellas",
+  "Goober Bay",
+  "Greeko Boys",
+  "HD Clan",
+  "Ironcrest Clan",
+  "Men in Suits",
+  "The Archivists' Library",
+  "The Bard's Hall",
+  "The Egalitarian Order",
+  "The Peak",
+  "The Pharaonate",
+  "The Veterans",
+  "Valhalla",
+  "None / Unassigned"
 ];
 
 const API = "/.netlify/functions/assignments";
