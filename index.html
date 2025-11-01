@@ -58,6 +58,14 @@
         <label for="status-dead">Dead</label>
       </div>
 
+      <!-- Killer filter segmented toggle -->
+      <div class="segmented killer-filter" role="group" aria-label="Filter by Killer">
+        <input type="radio" name="killerFilter" id="killer-all" value="" checked>
+        <label for="killer-all">All</label>
+        <input type="radio" name="killerFilter" id="killer-only" value="killer">
+        <label for="killer-only">Killers</label>
+      </div>
+
       <label class="leaders-toggle">
         <input id="leadersOnly" type="checkbox" />
         Only show leaders
@@ -158,6 +166,16 @@
             <label for="blueorder-yes">Yes</label>
             <input type="radio" name="blueOrder" id="blueorder-no" value="false">
             <label for="blueorder-no">No</label>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Killer?</label>
+          <div class="segmented">
+            <input type="radio" name="killer" id="killer-yes" value="true">
+            <label for="killer-yes">Yes</label>
+            <input type="radio" name="killer" id="killer-no" value="false">
+            <label for="killer-no">No</label>
           </div>
         </div>
       </div>

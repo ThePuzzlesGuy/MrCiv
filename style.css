@@ -1,4 +1,4 @@
-/* === COMPLETE STYLE.CSS (v10 Dead/Alive filter added) === */
+/* === COMPLETE STYLE.CSS (v11 Killer filter + Dead skull/dim) === */
 :root{
   --bg:#0b0d12;
   --card:#121722;
@@ -74,12 +74,30 @@ main{max-width:1200px;margin:0 auto;padding:16px;}
   padding:10px;
   min-height:84px;
   outline:none;
-  transition:border-color .2s,box-shadow .2s,opacity .2s,filter .2s;
+  transition:
+    border-color .2s,
+    box-shadow .2s,
+    opacity .2s,
+    filter .2s,
+    transform .2s;
 }
 .card:focus{box-shadow:0 0 0 4px var(--ring);}
 .card.boy{border-color:var(--boy);}
 .card.girl{border-color:var(--girl);}
-.card.dead{opacity:.75;}
+
+/* Killer glow */
+@keyframes killerPulse {
+  0% { box-shadow: 0 0 10px rgba(255,75,75,.55), inset 0 0 0 rgba(255,75,75,.25); }
+  50% { box-shadow: 0 0 18px rgba(255,75,75,.9), inset 0 0 12px rgba(255,75,75,.25); }
+  100% { box-shadow: 0 0 10px rgba(255,75,75,.55), inset 0 0 0 rgba(255,75,75,.25); }
+}
+.card.killer{
+  border-color:var(--danger);
+  animation:killerPulse 1.6s infinite;
+}
+
+/* Dead — totally dim + grayscale, head gets skull in JS */
+.card.dead{opacity:.32; filter:grayscale(100%);}
 
 /* Blue Order badge */
 .badge-blueorder{
@@ -107,27 +125,10 @@ main{max-width:1200px;margin:0 auto;padding:16px;}
   filter:drop-shadow(0 1px 1px rgba(0,0,0,.6));
 }
 
-/* Dead X overlay — for dead status only */
+/* (Kept for historical reference; the big red X overlay is no longer needed)
 .card.dead .head-btn{ position:relative; }
-.card.dead .head-btn::before{
-  content:"";
-  position:absolute;
-  inset:0;
-  border-radius:10px;
-  pointer-events:none;
-  background:
-    linear-gradient(45deg,
-      transparent calc(50% - 2px),
-      var(--danger) calc(50% - 2px) calc(50% + 2px),
-      transparent calc(50% + 2px)
-    ),
-    linear-gradient(-45deg,
-      transparent calc(50% - 2px),
-      var(--danger) calc(50% - 2px) calc(50% + 2px),
-      transparent calc(50% + 2px)
-    );
-  opacity:.95;
-}
+.card.dead .head-btn::before{ display:none; }
+*/
 
 /* Head + meta */
 .row{display:flex;align-items:center;gap:12px;}
@@ -230,13 +231,15 @@ main{max-width:1200px;margin:0 auto;padding:16px;}
 .segmented input#s-alive:checked + label[for="s-alive"]{ outline:3px solid var(--ok); }
 .segmented input#s-dead:checked  + label[for="s-dead"]{ outline:3px solid var(--danger); }
 
-/* Leader, Deputy, Blue Order highlights */
+/* Leader, Deputy, Blue Order, Killer highlights */
 .segmented input#leader-yes:checked    + label[for="leader-yes"],
 .segmented input#leader-no:checked     + label[for="leader-no"],
 .segmented input#deputy-yes:checked    + label[for="deputy-yes"],
 .segmented input#deputy-no:checked     + label[for="deputy-no"],
 .segmented input#blueorder-yes:checked + label[for="blueorder-yes"],
-.segmented input#blueorder-no:checked  + label[for="blueorder-no"]{
+.segmented input#blueorder-no:checked  + label[for="blueorder-no"],
+.segmented input#killer-yes:checked    + label[for="killer-yes"],
+.segmented input#killer-no:checked     + label[for="killer-no"]{
   outline:3px solid var(--accent);
 }
 
@@ -252,6 +255,12 @@ main{max-width:1200px;margin:0 auto;padding:16px;}
 .segmented.status-filter input#status-all:checked   + label[for="status-all"],
 .segmented.status-filter input#status-alive:checked + label[for="status-alive"],
 .segmented.status-filter input#status-dead:checked  + label[for="status-dead"]{
+  outline:3px solid var(--accent);
+}
+
+/* Killer filter segmented highlights (toolbar) */
+.segmented.killer-filter input#killer-all:checked + label[for="killer-all"],
+.segmented.killer-filter input#killer-only:checked + label[for="killer-only"]{
   outline:3px solid var(--accent);
 }
 

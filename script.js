@@ -1,4 +1,4 @@
-// === v10: adds Status (Alive/Dead) filter; keeps admin login and silent non-admin UI ===
+// === v11: Killer tag/filter + dead skull + full-dim; keeps admin login and silent non-admin UI ===
 
 const NAMES = [
   "1Dont3now_tv","1ns0mn1a_bot","20JP","21PilotLyfe","2hnoah","303_Gaming","5unah","6abz","6kid","6ossuxa","9222","_VES",
@@ -121,8 +121,28 @@ const aliveGirlsEl = document.getElementById("alive-girls");
 // team & status filters
 const teamFilterRadios = document.querySelectorAll('input[name="teamFilter"]');
 const statusFilterRadios = document.querySelectorAll('input[name="statusFilter"]');
+const killerFilterRadios = document.querySelectorAll('input[name="killerFilter"]');
 
 function headURL(name, size=100) { return `https://minotar.net/helm/${encodeURIComponent(name)}/${size}.png`; }
+function skullDataURL(size=60){
+  const s = size;
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='${s}' height='${s}' viewBox='0 0 64 64'>
+    <rect width='64' height='64' rx='10' ry='10' fill='#0e1420'/>
+    <g transform='translate(0,2)'>
+      <path d='M32 6c-10.5 0-19 8.5-19 19 0 6.9 3.8 12.9 9.4 16l-1.4 6h6l1-3h7l1 3h6l-1.4-6c5.6-3.1 9.4-9.1 9.4-16 0-10.5-8.5-19-19-19z' fill='#e7ebf2'/>
+      <circle cx='23' cy='25' r='6' fill='#0b0d12'/>
+      <circle cx='41' cy='25' r='6' fill='#0b0d12'/>
+      <rect x='27' y='33' width='10' height='6' rx='2' fill='#0b0d12'/>
+      <rect x='24' y='41' width='4' height='6' fill='#e7ebf2'/>
+      <rect x='30' y='41' width='4' height='6' fill='#e7ebf2'/>
+      <rect x='36' y='41' width='4' height='6' fill='#e7ebf2'/>
+    </g>
+  </svg>`;
+  return "data:image/svg+xml;utf8," + encodeURIComponent(svg);
+}
+function headSrcFor(name){
+  return (statusOf(name) === "dead") ? skullDataURL(60) : headURL(name, 100);
+}
 
 let state = {
   assignments: {},
@@ -205,11 +225,13 @@ function deputyOf(n)  { const r = recOf(n); return (!r || typeof r === "string")
 function statusOf(n)  { const r = recOf(n); return (!r || typeof r === "string") ? "alive" : (r.status || "alive"); }
 function allegsOf(n)  { const r = recOf(n); return (!r || typeof r === "string") ? [] : (Array.isArray(r.allegiances) ? r.allegiances : []); }
 function blueOrderOf(n) { const r = recOf(n); return (!r || typeof r === "string") ? false : !!r.blueOrder; }
+function killerOf(n)   { const r = recOf(n); return (!r || typeof r === "string") ? false : !!r.killer; }
 
 function setCardGenderClass(card, gender){ card.classList.remove("boy","girl"); if(gender==="boy")card.classList.add("boy"); if(gender==="girl")card.classList.add("girl"); }
 function setCardLeaderClass(card, isLeader){ card.classList.toggle("leader", !!isLeader); }
 function setCardDeputyClass(card, isDeputy){ card.classList.toggle("deputy", !!isDeputy); }
 function setCardStatusClass(card, status){ card.classList.toggle("dead", status === "dead"); }
+function setCardKillerClass(card, isKiller){ card.classList.toggle("killer", !!isKiller); }
 
 function updateTitleTooltip(node, name) {
   const faction = factionOf(name) || "None / Unassigned";
@@ -217,7 +239,8 @@ function updateTitleTooltip(node, name) {
   const extra = allegs.length ? ` | Allegiances: ${allegs.join(", ")}` : "";
   const isLeader = leaderOf(name) || deputyOf(name) ? " | Leader: Yes" : "";
   const status = statusOf(name);
-  node.title = `Faction: ${faction}${extra} | Status: ${status}${isLeader}`;
+  const killer = killerOf(name) ? " | Killer: Yes" : "";
+  node.title = `Faction: ${faction}${extra} | Status: ${status}${isLeader}${killer}`;
 }
 
 function makeCard(name) {
@@ -229,7 +252,7 @@ function makeCard(name) {
   const badge = node.querySelector(".badge-blueorder");
 
   nameEl.textContent = name;
-  img.src = headURL(name, 100);
+  img.src = headSrcFor(name);
   img.alt = name + " head";
   if (badge) badge.src = "assets/blueorder.png";
 
@@ -241,6 +264,7 @@ function makeCard(name) {
   setCardLeaderClass(node, leaderOf(name));
   setCardDeputyClass(node, deputyOf(name));
   setCardStatusClass(node, statusOf(name));
+  setCardKillerClass(node, killerOf(name));
   node.classList.toggle("has-blueorder", blueOrderOf(name));
 
   btn.addEventListener("click", () => {
@@ -261,12 +285,14 @@ function renderAll() {
   const leadersOnlyChecked = leadersOnly.checked;
   const teamVal = (document.querySelector('input[name="teamFilter"]:checked')?.value || "").toLowerCase();
   const statusVal = (document.querySelector('input[name="statusFilter"]:checked')?.value || "").toLowerCase();
+  const killerVal = (document.querySelector('input[name="killerFilter"]:checked')?.value || "").toLowerCase();
 
   NAMES.forEach((name) => {
     const faction = factionOf(name) || "None / Unassigned";
     const isLeaderish = leaderOf(name) || deputyOf(name);
     const g = genderOf(name) || ""; // "" = Unknown
     const st = statusOf(name);
+    const isKiller = killerOf(name);
 
     if (q && !name.toLowerCase().includes(q)) return;
     if (f && faction !== f) return;
@@ -276,6 +302,7 @@ function renderAll() {
     if (teamVal === "unknown" && g !== "") return;
     if (statusVal === "dead"  && st !== "dead") return;
     if (statusVal === "alive" && st === "dead") return;
+    if (killerVal === "killer" && !isKiller) return;
 
     const card = state.cards.get(name) || makeCard(name);
     card.querySelector(".faction-tag").textContent = faction + (allegsOf(name).length ? "  🤝" : "");
@@ -284,7 +311,13 @@ function renderAll() {
     setCardLeaderClass(card, isLeaderish);
     setCardDeputyClass(card, deputyOf(name));
     setCardStatusClass(card, st);
+    setCardKillerClass(card, isKiller);
     card.classList.toggle("has-blueorder", blueOrderOf(name));
+
+    // Update head image based on alive/dead
+    const img = card.querySelector(".head");
+    if (img) img.src = headSrcFor(name);
+
     frag.appendChild(card);
   });
 
@@ -321,6 +354,10 @@ function openModal(name) {
   modalForm.querySelector('#blueorder-yes').checked = !!bo;
   modalForm.querySelector('#blueorder-no').checked  = !bo;
 
+  const killer = killerOf(name);
+  modalForm.querySelector('#killer-yes').checked = !!killer;
+  modalForm.querySelector('#killer-no').checked  = !killer;
+
   modal.showModal();
 }
 
@@ -336,6 +373,7 @@ async function saveModal() {
   const deputy = modalForm.querySelector('#deputy-yes')?.checked === true;
   const allegiances = selectedAllegiances().filter(a => a && a !== "None / Unassigned");
   const blueOrder = modalForm.querySelector('#blueorder-yes')?.checked === true;
+  const killer = modalForm.querySelector('#killer-yes')?.checked === true;
 
   const prev = state.assignments[name] || {};
   state.assignments[name] = {
@@ -346,6 +384,7 @@ async function saveModal() {
     status:  (status === "dead" ? "dead" : "alive"),
     allegiances: Array.isArray(allegiances) ? allegiances : (prev.allegiances || []),
     blueOrder: (typeof blueOrder === "boolean" ? blueOrder : !!prev.blueOrder),
+    killer: (typeof killer === "boolean" ? killer : !!prev.killer),
   };
   renderAll();
 
@@ -356,7 +395,7 @@ async function saveModal() {
         "Content-Type": "application/json",
         "X-Roster-Admin": state.isAdmin ? "true" : "false"
       },
-      body: JSON.stringify({ name, faction, gender, leader, deputy, status, allegiances, blueOrder })
+      body: JSON.stringify({ name, faction, gender, leader, deputy, status, allegiances, blueOrder, killer })
     });
     if (!res.ok) throw new Error(await res.text());
   } catch (_e) {
@@ -372,6 +411,7 @@ factionFilter.addEventListener("change", renderAll);
 leadersOnly.addEventListener("change", renderAll);
 teamFilterRadios.forEach(r => r.addEventListener("change", renderAll));
 statusFilterRadios.forEach(r => r.addEventListener("change", renderAll));
+killerFilterRadios.forEach(r => r.addEventListener("change", renderAll));
 
 function updateCounters() {
   let boys = 0, girls = 0, aliveBoys = 0, aliveGirls = 0;
@@ -396,7 +436,7 @@ async function loadAll() {
   for (const name of NAMES) {
     const v = map[name];
     if (!v) continue;
-    if (typeof v === "string") normalized[name] = { faction: v, gender: "", leader: false, deputy: false, status: "alive", allegiances: [], blueOrder: false };
+    if (typeof v === "string") normalized[name] = { faction: v, gender: "", leader: false, deputy: false, status: "alive", allegiances: [], blueOrder: false, killer: false };
     else normalized[name] = {
       faction: v.faction || "",
       gender:  v.gender  || "",
@@ -404,7 +444,8 @@ async function loadAll() {
       deputy:  !!v.deputy,
       status:  (v.status === "dead" ? "dead" : "alive"),
       allegiances: Array.isArray(v.allegiances) ? v.allegiances : [],
-      blueOrder: !!v.blueOrder
+      blueOrder: !!v.blueOrder,
+      killer: !!v.killer
     };
   }
   return normalized;
