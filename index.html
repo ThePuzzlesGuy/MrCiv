@@ -36,7 +36,7 @@
         <option value="">All factions</option>
       </select>
 
-      <!-- New Team filter segmented toggle -->
+      <!-- Team filter segmented toggle -->
       <div class="segmented team-filter" role="group" aria-label="Filter by Team">
         <input type="radio" name="teamFilter" id="team-all" value="" checked>
         <label for="team-all">All</label>
@@ -46,6 +46,16 @@
         <label for="team-girl">Girls</label>
         <input type="radio" name="teamFilter" id="team-unknown" value="unknown">
         <label for="team-unknown">Unknown</label>
+      </div>
+
+      <!-- Status filter segmented toggle -->
+      <div class="segmented status-filter" role="group" aria-label="Filter by Status">
+        <input type="radio" name="statusFilter" id="status-all" value="" checked>
+        <label for="status-all">All</label>
+        <input type="radio" name="statusFilter" id="status-alive" value="alive">
+        <label for="status-alive">Alive</label>
+        <input type="radio" name="statusFilter" id="status-dead" value="dead">
+        <label for="status-dead">Dead</label>
       </div>
 
       <label class="leaders-toggle">
